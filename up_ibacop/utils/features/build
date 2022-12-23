@@ -1,0 +1,22 @@
+#!/bin/bash
+BASEDIR="$(dirname "$0")"
+ROOT=$PWD
+cd "$BASEDIR/ff-learner"
+make
+make clean
+cd $ROOT
+cd "$BASEDIR/heuristics/preprocess"
+make
+make clean
+cd $ROOT
+cd "$BASEDIR/heuristics/search"
+make STATE_VAR_BYTES=1 || exit 1
+make STATE_VAR_BYTES=2 || exit 1
+make STATE_VAR_BYTES=4 || exit 1
+make clean
+cd $ROOT
+cd "$BASEDIR/preprocess"
+make
+make clean
+cd $ROOT
+exit
