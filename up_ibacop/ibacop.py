@@ -4,7 +4,7 @@ from unified_planning.engines.mixins import PortfolioSelectorMixin
 from unified_planning.engines import Engine, Credits
 from unified_planning.io.pddl_writer import PDDLWriter
 from unified_planning.exceptions import UPException
-from typing import List
+from typing import Any, Dict, List, Optional, Tuple
 from utils.models import joinFile
 import tempfile
 
@@ -19,9 +19,33 @@ credits = Credits('IBACOP',
 
 class Ibacop(PortfolioSelectorMixin, Engine):
     def __init__(self, model_path, dataset_path):
-        super().__init__(model_path)
-        planner_list = self._init_planner_list(dataset_path)
+        Engine.__init__(self)
+        PortfolioSelectorMixin.__init__(self)
 
+        self._model_path = model_path
+        self._planner_list: List[str] = []
+        try:
+            self._init_planner_list(dataset_path)
+        except:
+            print("error")
+
+    #possible getter for planner_list
+
+    @staticmethod
+    def supports_operation_mode_for_selection(
+        operation_mode: "up.engines.engine.OperationMode",
+    ) -> bool:
+        pass
+
+    def _get_best_engines(
+        self,
+        problem: "up.model.AbstractProblem",
+        operation_mode: "up.engines.engine.OperationMode",
+        max_engines: Optional[int] = None,
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        pass
+
+    
     def _init_planner_list(self, dataset_path):
         word = "@attribute planner"
         with open(dataset_path, "r") as f:
@@ -32,8 +56,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace("{", "")
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
-                    self.planner_list = line.strip().split(",")
-
+                    self._planner_list = line.strip().split(",")
+ 
     def extract_features(
         self,
         problem: "up.model.AbstractProblem" = None,
@@ -119,7 +143,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             # join file
             temp_result = []
-            for p in self.planner_list:
+            for p in self._planner_list:
                 temp_result.append(p + ",?")
 
             joinFile.create_globals(tempdir, temp_result, self.planner_list)
@@ -205,7 +229,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 "java -Xms256m -Xmx1024m -cp "
                 + current_path
                 + "/models/weka.jar weka.classifiers.meta.RotationForest -l "
-                + self.model_path
+                + self._model_path
                 + " -T "
                 + tempdir
                 + "/global_features_simply.arff -p 113 > "
