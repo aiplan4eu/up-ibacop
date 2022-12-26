@@ -1,14 +1,23 @@
 import os
 import unified_planning as up
-from unified_planning.portfolio.portfolio import Portfolio
+from unified_planning.engines.mixins import PortfolioSelectorMixin
+from unified_planning.engines import Engine, Credits
 from unified_planning.io.pddl_writer import PDDLWriter
 from unified_planning.exceptions import UPException
 from typing import List
-from unified_planning.models import joinFile
+from utils.models import joinFile
 import tempfile
 
+credits = Credits('IBACOP',
+                  'Isabel(?)',
+                  '*@gmail.com',
+                  'https://*/',
+                  '?',
+                  '?',
+                  '?')
 
-class Ibacop(Portfolio):
+
+class Ibacop(PortfolioSelectorMixin, Engine):
     def __init__(self, model_path, dataset_path):
         super().__init__(model_path)
         planner_list = self._init_planner_list(dataset_path)
