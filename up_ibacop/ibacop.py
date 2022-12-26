@@ -1,7 +1,8 @@
 import os
 import unified_planning as up
+from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
-from unified_planning.engines import Engine, Credits
+from unified_planning.engines import Engine, Credits, OperationMode, Factory
 from unified_planning.io.pddl_writer import PDDLWriter
 from unified_planning.exceptions import UPException
 from typing import Any, Dict, List, Optional, Tuple
@@ -16,6 +17,9 @@ credits = Credits('IBACOP',
                   '?',
                   '?')
 
+OPERATION_MODES_SUPPORTED = [
+    OperationMode.ONESHOT_PLANNER
+]
 
 class Ibacop(PortfolioSelectorMixin, Engine):
     def __init__(self, model_path, dataset_path):
@@ -29,13 +33,36 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         except:
             print("error")
 
-    #possible getter for planner_list
+    @property
+    def name(self) -> str:
+        return 'ibacop'
+
+    @property
+    def planner_list(self) -> List[str]:
+        """Returns the list of engines in the portfolio."""
+        return self._planner_list
+    
+    @staticmethod
+    def supported_kind() -> ProblemKind:
+        pass
+        
+    @staticmethod
+    def supports(problem_kind: "ProblemKind") -> bool:
+        for name in Ibacop.planner_list():
+            engine = Factory.engine(name)
+            if not engine.supports(problem_kind):
+                return False
+        return True
+
+    @staticmethod
+    def get_credits(**kwargs) -> Optional[Credits]:
+        return credits
 
     @staticmethod
     def supports_operation_mode_for_selection(
         operation_mode: "up.engines.engine.OperationMode",
     ) -> bool:
-        pass
+        return operation_mode in OPERATION_MODES_SUPPORTED
 
     def _get_best_engines(
         self,
@@ -44,7 +71,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         max_engines: Optional[int] = None,
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
         pass
-
     
     def _init_planner_list(self, dataset_path):
         word = "@attribute planner"
@@ -58,7 +84,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace(" ", "")
                     self._planner_list = line.strip().split(",")
  
-    def extract_features(
+    def _extract_features(
         self,
         problem: "up.model.AbstractProblem" = None,
         domain_path: str = None,
@@ -253,3 +279,5 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             os.chdir(current_wdir)
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
+
+    
