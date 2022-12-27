@@ -64,14 +64,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     ) -> bool:
         return operation_mode in OPERATION_MODES_SUPPORTED
 
-    def _get_best_engines(
-        self,
-        problem: "up.model.AbstractProblem",
-        operation_mode: "up.engines.engine.OperationMode",
-        max_engines: Optional[int] = None,
-    ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        pass
-    
     def _init_planner_list(self, dataset_path):
         word = "@attribute planner"
         with open(dataset_path, "r") as f:
@@ -83,31 +75,31 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
                     self._planner_list = line.strip().split(",")
+
+    def _get_best_engines(
+        self,
+        problem: "up.model.AbstractProblem",
+        operation_mode: "up.engines.engine.OperationMode",
+        max_engines: Optional[int] = None,
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+
+        features = self._extract_features(problem)
+        return self._get_prediction(features)
  
     def _extract_features(
         self,
-        problem: "up.model.AbstractProblem" = None,
-        domain_path: str = None,
-        problem_path: str = None,
+        problem: "up.model.AbstractProblem"
     ) -> List[str]:
 
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
 
         with tempfile.TemporaryDirectory() as tempdir:
-            if problem is not None:
-                w = PDDLWriter(problem, True)
-                domain_filename = os.path.join(tempdir, "domain.pddl")
-                problem_filename = os.path.join(tempdir, "problem.pddl")
-                w.write_domain(domain_filename)
-                w.write_problem(problem_filename)
-            elif domain_path is not None and problem_path is not None:
-                domain_filename = domain_path
-                problem_filename = problem_path
-            else:
-                raise UPException(
-                    "You need to pass an AbstractProblem or the domain and problem path"
-                )
+            w = PDDLWriter(problem, True)
+            domain_filename = os.path.join(tempdir, "domain.pddl")
+            problem_filename = os.path.join(tempdir, "problem.pddl")
+            w.write_domain(domain_filename)
+            w.write_problem(problem_filename)
 
             # need to change the working dir for the following commands to work properly
             os.chdir(tempdir)
@@ -178,53 +170,14 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             # go back to the previously working dir
             os.chdir(current_wdir)
+
             with open(os.path.join(tempdir, "global_features.arff")) as file_features:
                 return file_features.readlines()
 
-    def create_model(self, features) -> str:
-        # per funzionare ha bisogno di:
-        # weka all'interno della dir current_path/models/
-        # e crea il .model in current_path (ovvero dove c'è il file ibacop.py)
-        current_path = os.path.dirname(__file__)
-        with tempfile.TemporaryDirectory() as tempdir:
-            features_path = os.path.join(tempdir, "global_features.arff")
-
-            with open(features_path, "w") as file:
-                for line in features:
-                    # write each item on a new line
-                    file.write("%s\n" % line)
-
-            # Call to `weka.jar` to remove unused `features`
-            command = (
-                "java -cp "
-                + current_path
-                + "/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
-                + features_path
-                + " -o "
-                + tempdir
-                + "/global_features_simply.arff"
-            )
-            os.system(command)
-
-            # Save the model created
-            command = (
-                "java -Xms256m -Xmx1024m -cp "
-                + current_path
-                + "/models/weka.jar weka.classifiers.meta.RotationForest  -t "
-                + tempdir
-                + "/global_features_simply.arff -d "
-                + current_path
-                + "/RotationForest.model"
-            )
-            os.system(command)
-
-            model_path = os.path.join(current_path, "RotationForest.model")
-            if os.path.isfile(model_path):
-                return model_path
-            else:
-                return None
-
-    def get_prediction(self, features) -> List[str]:
+    def _get_prediction(
+        self,
+        features: List[str]
+    ) -> List[str]:
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
 
@@ -280,4 +233,45 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
 
-    
+    def create_model(self, features) -> str:
+        # per funzionare ha bisogno di:
+        # weka all'interno della dir current_path/models/
+        # e crea il .model in current_path (ovvero dove c'è il file ibacop.py)
+        current_path = os.path.dirname(__file__)
+        with tempfile.TemporaryDirectory() as tempdir:
+            features_path = os.path.join(tempdir, "global_features.arff")
+
+            with open(features_path, "w") as file:
+                for line in features:
+                    # write each item on a new line
+                    file.write("%s\n" % line)
+
+            # Call to `weka.jar` to remove unused `features`
+            command = (
+                "java -cp "
+                + current_path
+                + "/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
+                + features_path
+                + " -o "
+                + tempdir
+                + "/global_features_simply.arff"
+            )
+            os.system(command)
+
+            # Save the model created
+            command = (
+                "java -Xms256m -Xmx1024m -cp "
+                + current_path
+                + "/models/weka.jar weka.classifiers.meta.RotationForest  -t "
+                + tempdir
+                + "/global_features_simply.arff -d "
+                + current_path
+                + "/RotationForest.model"
+            )
+            os.system(command)
+
+            model_path = os.path.join(current_path, "RotationForest.model")
+            if os.path.isfile(model_path):
+                return model_path
+            else:
+                return None
