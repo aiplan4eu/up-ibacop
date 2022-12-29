@@ -8,6 +8,7 @@ from unified_planning.exceptions import UPException
 from typing import Any, Dict, List, Optional, Tuple
 from up_ibacop.utils.models import joinFile
 import tempfile
+import ast
 
 credits = Credits('IBACOP',
                   'Isabel(?)',
@@ -22,14 +23,16 @@ OPERATION_MODES_SUPPORTED = [
 ]
 
 class Ibacop(PortfolioSelectorMixin, Engine):
-    def __init__(self, model_path, dataset_path):
+    def __init__(self, model_path: Optional[str] = "model/RotationForest.model", dataset_path: Optional[str] = "model/global_features_simply.arff"):
         Engine.__init__(self)
         PortfolioSelectorMixin.__init__(self)
 
         self._model_path = model_path
         self._planner_list: List[str] = []
+        self._parameters_list: List[Dict[str, Any]] = []
+
         try:
-            self._init_planner_list(dataset_path)
+            self._init_planner_data(dataset_path)
         except:
             print("error")
 
@@ -37,9 +40,15 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def name(self) -> str:
         return 'ibacop'
 
+    @property
     def planner_list(self) -> List[str]:
         """Returns the list of engines in the portfolio."""
         return self._planner_list
+    
+    @property
+    def parameters_list(self) -> List[str]:
+        """Returns the list of parameters of the engines in the portfolio."""
+        return self._parameters_list
     
     @staticmethod
     def supported_kind() -> ProblemKind:
@@ -64,7 +73,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     ) -> bool:
         return operation_mode in OPERATION_MODES_SUPPORTED
 
-    def _init_planner_list(self, dataset_path):
+    def _init_planner_data(self, dataset_path):
         word = "@attribute planner"
         with open(dataset_path, "r") as f:
             lines = f.readlines()
@@ -74,7 +83,22 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace("{", "")
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
-                    self._planner_list = line.strip().split(",")
+                    planner_list = []
+                    parameters_dict_list = []
+                    for tuple in line.strip().split(","):
+                        tmp = tuple.split("|")
+                        planner_name = tmp[0]
+                        parameters_list = tmp[1]
+                        #can't save the parameters list as {} because weka saves the list as {}
+                        parameters_list = parameters_list.replace(";", ",")
+                        parameters_list = "{" + parameters_list + "}"
+                        parameters_dict = ast.literal_eval(parameters_list)                        
+
+                        planner_list.append(planner_name)
+                        parameters_dict_list.append(parameters_dict)
+            self._planner_list = planner_list
+            self._parameters_list = parameters_dict_list
+            #better this or return the 2 lists
 
     def _get_best_engines(
         self,
@@ -158,13 +182,24 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + "/output"
             )
             os.system(command)
-
+            
+            #formatting the list of names and the list of parameters into a list of tuples to be used by weka
+            tuple_list = []
+            planner_list = self.planner_list()
+            parameter_list = self.parameters_list()
+            for i in range(0,len(planner_list)):
+                tmp_str = planner_list[i] + "|" + str(parameter_list[i])
+                tmp_str = tmp_str.replace("{", "")
+                tmp_str = tmp_str.replace("}", "")
+                tmp_str = tmp_str.replace(",", ";")
+                tuple_list.append(tuple)
+            
             # join file
             temp_result = []
-            for p in self._planner_list:
-                temp_result.append(p + ",?")
+            for t in tuple_list:
+                temp_result.append(t + ",?")
 
-            joinFile.create_globals(tempdir, temp_result, self.planner_list())
+            joinFile.create_globals(tempdir, temp_result, tuple_list)
 
             print("\n***end extract features***\n")
 
