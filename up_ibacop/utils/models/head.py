@@ -158,9 +158,9 @@ class Head:
         res = "@attribute planner {"
         for i,p in enumerate(planner_list):
             if(i == 0):
-                res += p
+                res += str(p)
             else:
-                res += ", " + p
+                res += ", " + str(p)
         res += "}\n"
         self.head.append(res)
             

@@ -18,16 +18,21 @@ credits = Credits('IBACOP',
                   '?',
                   '?')
 
+rootpath = os.path.dirname(__file__)
+default_model_path = os.path.join(rootpath, "model/RotationForest.model")
+default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff")
+
 OPERATION_MODES_SUPPORTED = [
     OperationMode.ONESHOT_PLANNER
 ]
 
 class Ibacop(PortfolioSelectorMixin, Engine):
-    def __init__(self, model_path: Optional[str] = "model/RotationForest.model", dataset_path: Optional[str] = "model/global_features_simply.arff"):
+    def __init__(self, model_path: Optional[str] = default_model_path, dataset_path: Optional[str] = default_dataset_path):
         Engine.__init__(self)
         PortfolioSelectorMixin.__init__(self)
 
         self._model_path = model_path
+        self._dataset_path = dataset_path
         self._planner_list: List[str] = []
         self._parameters_list: List[Dict[str, Any]] = []
 
@@ -185,19 +190,19 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             
             #formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
-            planner_list = self.planner_list()
-            parameter_list = self.parameters_list()
+            planner_list = self.planner_list
+            parameter_list = self.parameters_list
             for i in range(0,len(planner_list)):
                 tmp_str = planner_list[i] + "|" + str(parameter_list[i])
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
-                tuple_list.append(tuple)
+                tuple_list.append(tmp_str)
             
             # join file
             temp_result = []
             for t in tuple_list:
-                temp_result.append(t + ",?")
+                temp_result.append(str(t) + ",?")
 
             joinFile.create_globals(tempdir, temp_result, tuple_list)
 
