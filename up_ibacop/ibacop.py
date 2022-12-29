@@ -113,7 +113,18 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
 
         features = self._extract_features(problem)
-        return self._get_prediction(features)
+        model_prediction_list = self._get_prediction(features)
+
+        n_selected_engines = 0
+        list_engines = []
+        for engine in model_prediction_list:
+            engine = engine.strip()
+            list_engines.append(engine)
+            n_selected_engines += 1
+            if n_selected_engines == max_engines:
+                break
+
+        return list_engines
  
     def _extract_features(
         self,
