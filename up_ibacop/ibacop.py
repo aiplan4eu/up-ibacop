@@ -276,6 +276,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 return file.readlines()
 
     def _extract_tuple_from_list(
+        self,
         tuple_list: List[str]
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
         engines = []
