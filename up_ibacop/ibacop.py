@@ -6,7 +6,7 @@ from unified_planning.engines import Engine, Credits, OperationMode, Factory
 from unified_planning.io.pddl_writer import PDDLWriter
 from unified_planning.exceptions import UPException
 from typing import Any, Dict, List, Optional, Tuple
-from utils.models import joinFile
+from up_ibacop.utils.models import joinFile
 import tempfile
 
 credits = Credits('IBACOP',
@@ -37,7 +37,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def name(self) -> str:
         return 'ibacop'
 
-    @property
     def planner_list(self) -> List[str]:
         """Returns the list of engines in the portfolio."""
         return self._planner_list
@@ -48,10 +47,11 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
-        for name in Ibacop.planner_list():
-            engine = Factory.engine(name)
-            if not engine.supports(problem_kind):
-                return False
+        # for name in Ibacop.planner_list():
+        #     engine = Factory.engine(name)
+        #     if not engine.supports(problem_kind):
+        #         return False
+        # return True
         return True
 
     @staticmethod
@@ -108,7 +108,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "python2.7 "
                 + current_path
-                + "/features/translate/translate.py "
+                + "/utils/features/translate/translate.py "
                 + domain_filename
                 + " "
                 + problem_filename
@@ -118,7 +118,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             command = (
                 current_path
-                + "/features/preprocess/preprocess < "
+                + "/utils/features/preprocess/preprocess < "
                 + tempdir
                 + "/output.sas"
             )
@@ -126,7 +126,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             command = (
                 current_path
-                + "/features/ff-learner/roller3.0 -o "
+                + "/utils/features/ff-learner/roller3.0 -o "
                 + domain_filename
                 + " -f "
                 + problem_filename
@@ -136,7 +136,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             command = (
                 current_path
-                + "/features/heuristics/training.sh "
+                + "/utils/features/heuristics/training.sh "
                 + domain_filename
                 + " "
                 + problem_filename
@@ -145,7 +145,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             command = (
                 current_path
-                + '/search/downward --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
+                + '/utils/search/downward --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
                 + tempdir
                 + "/output"
             )
@@ -153,7 +153,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             command = (
                 current_path
-                + "/search-mercury/downward ipc seq-agl-mercury <"
+                + "/utils/search-mercury/downward ipc seq-agl-mercury <"
                 + tempdir
                 + "/output"
             )
@@ -164,7 +164,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             for p in self._planner_list:
                 temp_result.append(p + ",?")
 
-            joinFile.create_globals(tempdir, temp_result, self.planner_list)
+            joinFile.create_globals(tempdir, temp_result, self.planner_list())
 
             print("\n***end extract features***\n")
 
@@ -195,7 +195,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "java -cp "
                 + current_path
-                + "/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
+                + "/utils/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
                 + features_path
                 + " -o "
                 + tempdir
@@ -207,7 +207,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "java -Xms256m -Xmx1024m -cp "
                 + current_path
-                + "/models/weka.jar weka.classifiers.meta.RotationForest -l "
+                + "/utils/models/weka.jar weka.classifiers.meta.RotationForest -l "
                 + self._model_path
                 + " -T "
                 + tempdir
@@ -220,7 +220,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "python2.7 "
                 + current_path
-                + "/models/parseWekaOutputFile.py "
+                + "/utils/models/parseWekaOutputFile.py "
                 + tempdir
                 + "/outputModel "
                 + tempdir
@@ -250,7 +250,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "java -cp "
                 + current_path
-                + "/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
+                + "/utils/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
                 + features_path
                 + " -o "
                 + tempdir
@@ -262,7 +262,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 "java -Xms256m -Xmx1024m -cp "
                 + current_path
-                + "/models/weka.jar weka.classifiers.meta.RotationForest  -t "
+                + "/utils/models/weka.jar weka.classifiers.meta.RotationForest  -t "
                 + tempdir
                 + "/global_features_simply.arff -d "
                 + current_path

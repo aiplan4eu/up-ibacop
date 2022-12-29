@@ -7,7 +7,7 @@ __email__ = "icenamor@inf.uc3m.es"
 import sys
 import string
 import os
-from unified_planning.models.head import Head
+from up_ibacop.utils.models.head import Head
 
 
 Ntranslate=26
