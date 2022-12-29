@@ -33,8 +33,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
         self._model_path = model_path
         self._dataset_path = dataset_path
-        self._planner_list: List[str] = []
-        self._parameters_list: List[Dict[str, Any]] = []
+        self._engines: List[str] = []
+        self._parameters: List[Dict[str, Any]] = []
 
         try:
             self._init_planner_data(dataset_path)
@@ -46,14 +46,14 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         return 'ibacop'
 
     @property
-    def planner_list(self) -> List[str]:
+    def engines(self) -> List[str]:
         """Returns the list of engines in the portfolio."""
-        return self._planner_list
+        return self._engines
     
     @property
-    def parameters_list(self) -> List[str]:
+    def parameters(self) -> List[str]:
         """Returns the list of parameters of the engines in the portfolio."""
-        return self._parameters_list
+        return self._parameters
     
     @staticmethod
     def supported_kind() -> ProblemKind:
@@ -61,7 +61,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
-        # for name in Ibacop.planner_list():
+        # for name in Ibacop.engines():
         #     engine = Factory.engine(name)
         #     if not engine.supports(problem_kind):
         #         return False
@@ -88,10 +88,10 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace("{", "")
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
-                    planner_list, parameters_dict_list = self._extract_tuple_from_list(line.strip().split(","))
+                    engines, parameters = self._extract_tuple_from_list(line.strip().split(","))
 
-            self._planner_list = planner_list
-            self._parameters_list = parameters_dict_list
+            self._engines = engines
+            self._parameters = parameters
             #better this or return the 2 lists
         
     def _get_best_engines(
@@ -113,9 +113,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             if n_selected_engines == max_engines:
                 break
 
-        planner_list, parameters_dict_list = self._extract_tuple_from_list(list_engines)
+        engines, parameters = self._extract_tuple_from_list(list_engines)
 
-        return planner_list, parameters_dict_list
+        return engines, parameters
  
     def _extract_features(
         self,
@@ -192,10 +192,10 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             
             #formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
-            planner_list = self.planner_list
-            parameter_list = self.parameters_list
-            for i in range(0,len(planner_list)):
-                tmp_str = planner_list[i] + "|" + str(parameter_list[i])
+            engines = self._engines
+            parameter_list = self._parameters
+            for i in range(0,len(engines)):
+                tmp_str = engines[i] + "|" + str(parameter_list[i])
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
@@ -278,20 +278,20 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def _extract_tuple_from_list(
         tuple_list: List[str]
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        planner_list = []
-        parameters_dict_list = []
+        engines = []
+        parameters= []
         for tuple in tuple_list:
             tmp = tuple.split("|")
-            planner_name = tmp[0]
-            parameters_list = tmp[1]
+            engine_name = tmp[0]
+            engine_parameters = tmp[1]
             #can't save the parameters list as {} because weka saves the list as {}
-            parameters_list = parameters_list.replace(";", ",")
-            parameters_list = "{" + parameters_list + "}"
-            parameters_dict = ast.literal_eval(parameters_list)                        
+            engine_parameters = engine_parameters.replace(";", ",")
+            engine_parameters = "{" + engine_parameters + "}"
+            engine_parameters_dict = ast.literal_eval(engine_parameters)                        
 
-            planner_list.append(planner_name)
-            parameters_dict_list.append(parameters_dict)
-        return planner_list, parameters_dict_list
+            engines.append(engine_name)
+            parameters.append(engine_parameters_dict)
+        return engines, parameters
 
     def create_model(self, features) -> str:
         # per funzionare ha bisogno di:
