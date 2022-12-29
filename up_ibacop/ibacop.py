@@ -88,23 +88,12 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                     line = line.replace("{", "")
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
-                    planner_list = []
-                    parameters_dict_list = []
-                    for tuple in line.strip().split(","):
-                        tmp = tuple.split("|")
-                        planner_name = tmp[0]
-                        parameters_list = tmp[1]
-                        #can't save the parameters list as {} because weka saves the list as {}
-                        parameters_list = parameters_list.replace(";", ",")
-                        parameters_list = "{" + parameters_list + "}"
-                        parameters_dict = ast.literal_eval(parameters_list)                        
+                    planner_list, parameters_dict_list = self._extract_tuple_from_list(line.strip().split(","))
 
-                        planner_list.append(planner_name)
-                        parameters_dict_list.append(parameters_dict)
             self._planner_list = planner_list
             self._parameters_list = parameters_dict_list
             #better this or return the 2 lists
-
+        
     def _get_best_engines(
         self,
         problem: "up.model.AbstractProblem",
@@ -124,7 +113,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             if n_selected_engines == max_engines:
                 break
 
-        return list_engines
+        planner_list, parameters_dict_list = self._extract_tuple_from_list(list_engines)
+
+        return planner_list, parameters_dict_list
  
     def _extract_features(
         self,
@@ -283,6 +274,24 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             os.chdir(current_wdir)
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
+
+    def _extract_tuple_from_list(
+        tuple_list: List[str]
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        planner_list = []
+        parameters_dict_list = []
+        for tuple in tuple_list:
+            tmp = tuple.split("|")
+            planner_name = tmp[0]
+            parameters_list = tmp[1]
+            #can't save the parameters list as {} because weka saves the list as {}
+            parameters_list = parameters_list.replace(";", ",")
+            parameters_list = "{" + parameters_list + "}"
+            parameters_dict = ast.literal_eval(parameters_list)                        
+
+            planner_list.append(planner_name)
+            parameters_dict_list.append(parameters_dict)
+        return planner_list, parameters_dict_list
 
     def create_model(self, features) -> str:
         # per funzionare ha bisogno di:
