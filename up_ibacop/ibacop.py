@@ -1,5 +1,6 @@
 import os
 import unified_planning as up
+from unified_planning.environment import Environment
 from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
 from unified_planning.engines import Engine, Credits, OperationMode, Factory
@@ -74,12 +75,12 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
-        # for name in Ibacop.engines():
-        #     engine = Factory.engine(name)
-        #     if not engine.supports(problem_kind):
-        #         return False
-        # return True
-        return True
+        for engine_name in default_engines:
+            factory = Factory(Environment())
+            engine = factory.engine(engine_name)
+            if engine.supports(problem_kind):
+                return True
+        return False
 
     @staticmethod
     def get_credits(**kwargs) -> Optional[Credits]:
@@ -105,7 +106,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         list_engines = []
         for engine in model_prediction_list:
             engine = engine.strip()
-            if(operation_mode in engine):
+            if(operation_mode.value in engine):
                 list_engines.append(engine)
                 n_selected_engines += 1
                 if n_selected_engines == max_engines:
@@ -247,7 +248,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 "java -Xms256m -Xmx1024m -cp "
                 + current_path
                 + "/utils/models/weka.jar weka.classifiers.meta.RotationForest -l "
-                + self._model_path
+                + default_model_path
                 + " -T "
                 + tempdir
                 + "/global_features_simply.arff -p 113 > "
