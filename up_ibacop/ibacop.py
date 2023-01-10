@@ -22,39 +22,52 @@ rootpath = os.path.dirname(__file__)
 default_model_path = os.path.join(rootpath, "model/RotationForest.model")
 default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff")
 
-OPERATION_MODES_SUPPORTED = [
-    OperationMode.ONESHOT_PLANNER
-]
+def extract_tuple_from_list(
+        tuple_list: List[str]
+    ) -> Tuple[List[str], List[Dict[str, Any]], List[OperationMode]]:
+        engines = []
+        parameters= []
+        operation_modes_supported = []
+        for tuple in tuple_list:
+            tmp = tuple.split("|")
+            engine_name = tmp[0]
+            engine_parameters = tmp[1]
+            engine_operation_mode = tmp[2]
+            #can't save the parameters list as {} because weka saves the list as {}
+            engine_parameters = engine_parameters.replace(";", ",")
+            engine_parameters = "{" + engine_parameters + "}"
+            engine_parameters_dict = ast.literal_eval(engine_parameters)                        
+
+            engines.append(engine_name)
+            parameters.append(engine_parameters_dict)
+            operation_modes_supported.append(OperationMode(engine_operation_mode))
+        return engines, parameters, operation_modes_supported
+
+def init_engines_data() -> Tuple[List[str], List[Dict[str, Any]], List[OperationMode]]:
+        word = "@attribute planner"
+        with open(default_dataset_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line.find(word) != -1:
+                    line = line.replace(word, "")
+                    line = line.replace("{", "")
+                    line = line.replace("}", "")
+                    line = line.replace(" ", "")
+                    engines, parameters, operation_modes_supported = extract_tuple_from_list(line.strip().split(","))
+
+            return engines, parameters, operation_modes_supported
+
+default_engines, default_parameters, default_operation_modes_supported = init_engines_data()
 
 class Ibacop(PortfolioSelectorMixin, Engine):
-    def __init__(self, model_path: Optional[str] = default_model_path, dataset_path: Optional[str] = default_dataset_path):
+    def __init__(self):
         Engine.__init__(self)
         PortfolioSelectorMixin.__init__(self)
-
-        self._model_path = model_path
-        self._dataset_path = dataset_path
-        self._engines: List[str] = []
-        self._parameters: List[Dict[str, Any]] = []
-
-        try:
-            self._init_planner_data(dataset_path)
-        except:
-            print("error")
 
     @property
     def name(self) -> str:
         return 'ibacop'
 
-    @property
-    def engines(self) -> List[str]:
-        """Returns the list of engines in the portfolio."""
-        return self._engines
-    
-    @property
-    def parameters(self) -> List[str]:
-        """Returns the list of parameters of the engines in the portfolio."""
-        return self._parameters
-    
     @staticmethod
     def supported_kind() -> ProblemKind:
         pass
@@ -76,23 +89,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def supports_operation_mode_for_selection(
         operation_mode: "up.engines.engine.OperationMode",
     ) -> bool:
-        return operation_mode in OPERATION_MODES_SUPPORTED
-
-    def _init_planner_data(self, dataset_path):
-        word = "@attribute planner"
-        with open(dataset_path, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                if line.find(word) != -1:
-                    line = line.replace(word, "")
-                    line = line.replace("{", "")
-                    line = line.replace("}", "")
-                    line = line.replace(" ", "")
-                    engines, parameters = self._extract_tuple_from_list(line.strip().split(","))
-
-            self._engines = engines
-            self._parameters = parameters
-            #better this or return the 2 lists
+        return operation_mode in default_operation_modes_supported
         
     def _get_best_engines(
         self,
@@ -108,12 +105,13 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         list_engines = []
         for engine in model_prediction_list:
             engine = engine.strip()
-            list_engines.append(engine)
-            n_selected_engines += 1
-            if n_selected_engines == max_engines:
-                break
+            if(operation_mode in engine):
+                list_engines.append(engine)
+                n_selected_engines += 1
+                if n_selected_engines == max_engines:
+                    break
 
-        engines, parameters = self._extract_tuple_from_list(list_engines)
+        engines, parameters, _ = extract_tuple_from_list(list_engines)
 
         return engines, parameters
  
@@ -192,10 +190,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             
             #formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
-            engines = self._engines
-            parameter_list = self._parameters
-            for i in range(0,len(engines)):
-                tmp_str = engines[i] + "|" + str(parameter_list[i])
+
+            for i in range(0,len(default_engines)):
+                tmp_str = default_engines[i] + "|" + str(default_parameters[i]) + "|" + default_operation_modes_supported[i].value
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
@@ -274,25 +271,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             os.chdir(current_wdir)
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
-
-    def _extract_tuple_from_list(
-        self,
-        tuple_list: List[str]
-    ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        engines = []
-        parameters= []
-        for tuple in tuple_list:
-            tmp = tuple.split("|")
-            engine_name = tmp[0]
-            engine_parameters = tmp[1]
-            #can't save the parameters list as {} because weka saves the list as {}
-            engine_parameters = engine_parameters.replace(";", ",")
-            engine_parameters = "{" + engine_parameters + "}"
-            engine_parameters_dict = ast.literal_eval(engine_parameters)                        
-
-            engines.append(engine_name)
-            parameters.append(engine_parameters_dict)
-        return engines, parameters
 
     def create_model(self, features) -> str:
         # per funzionare ha bisogno di:
