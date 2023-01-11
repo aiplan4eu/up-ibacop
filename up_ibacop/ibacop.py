@@ -3,9 +3,8 @@ import unified_planning as up
 from unified_planning.environment import Environment
 from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
-from unified_planning.engines import Engine, Credits, OperationMode, Factory
+from unified_planning.engines import Engine, Credits, Factory
 from unified_planning.io.pddl_writer import PDDLWriter
-from unified_planning.exceptions import UPException
 from typing import Any, Dict, List, Optional, Tuple
 from up_ibacop.utils.models import joinFile
 import tempfile
@@ -25,26 +24,23 @@ default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff
 
 def extract_tuple_from_list(
         tuple_list: List[str]
-    ) -> Tuple[List[str], List[Dict[str, Any]], List[OperationMode]]:
-        engines = []
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        planners = []
         parameters= []
-        operation_modes_supported = []
         for tuple in tuple_list:
             tmp = tuple.split("|")
-            engine_name = tmp[0]
-            engine_parameters = tmp[1]
-            engine_operation_mode = tmp[2]
+            planner_name = tmp[0]
+            planner_parameters = tmp[1]
             #can't save the parameters list as {} because weka saves the list as {}
-            engine_parameters = engine_parameters.replace(";", ",")
-            engine_parameters = "{" + engine_parameters + "}"
-            engine_parameters_dict = ast.literal_eval(engine_parameters)                        
+            planner_parameters = planner_parameters.replace(";", ",")
+            planner_parameters = "{" + planner_parameters + "}"
+            planner_parameters_dict = ast.literal_eval(planner_parameters)                        
 
-            engines.append(engine_name)
-            parameters.append(engine_parameters_dict)
-            operation_modes_supported.append(OperationMode(engine_operation_mode))
-        return engines, parameters, operation_modes_supported
+            planners.append(planner_name)
+            parameters.append(planner_parameters_dict)
+        return planners, parameters
 
-def init_engines_data() -> Tuple[List[str], List[Dict[str, Any]], List[OperationMode]]:
+def init_planners_data() -> Tuple[List[str], List[Dict[str, Any]]]:
         word = "@attribute planner"
         with open(default_dataset_path, "r") as f:
             lines = f.readlines()
@@ -54,11 +50,11 @@ def init_engines_data() -> Tuple[List[str], List[Dict[str, Any]], List[Operation
                     line = line.replace("{", "")
                     line = line.replace("}", "")
                     line = line.replace(" ", "")
-                    engines, parameters, operation_modes_supported = extract_tuple_from_list(line.strip().split(","))
+                    planners, parameters = extract_tuple_from_list(line.strip().split(","))
 
-            return engines, parameters, operation_modes_supported
+            return planners, parameters
 
-default_engines, default_parameters, default_operation_modes_supported = init_engines_data()
+default_planners, default_parameters = init_planners_data()
 
 class Ibacop(PortfolioSelectorMixin, Engine):
     def __init__(self):
@@ -75,9 +71,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
-        for engine_name in default_engines:
+        for planner in default_planners:
             factory = Factory(Environment())
-            engine = factory.engine(engine_name)
+            engine = factory.engine(planner)
             if engine.supports(problem_kind):
                 return True
         return False
@@ -86,35 +82,56 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def get_credits(**kwargs) -> Optional[Credits]:
         return credits
 
-    @staticmethod
-    def supports_operation_mode_for_selection(
-        operation_mode: "up.engines.engine.OperationMode",
-    ) -> bool:
-        return operation_mode in default_operation_modes_supported
-        
-    def _get_best_engines(
+    # @staticmethod
+    # def supports_operation_mode_for_selection(
+    #     operation_mode: "up.engines.engine.OperationMode",
+    # ) -> bool:
+    #     return operation_mode in default_operation_modes_supported
+    def _get_best_oneshot_planners(
         self,
         problem: "up.model.AbstractProblem",
-        operation_mode: "up.engines.engine.OperationMode",
-        max_engines: Optional[int] = None,
+        max_planners: Optional[int] = None,
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
-
+    
         features = self._extract_features(problem)
         model_prediction_list = self._get_prediction(features)
 
-        n_selected_engines = 0
-        list_engines = []
-        for engine in model_prediction_list:
-            engine = engine.strip()
-            if(operation_mode.value in engine):
-                list_engines.append(engine)
-                n_selected_engines += 1
-                if n_selected_engines == max_engines:
-                    break
+        n_selected_planners = 0
+        list_planners = []
+        for planner in model_prediction_list:
+            planner = planner.strip()
+            list_planners.append(planner)
+            n_selected_planners += 1
+            if n_selected_planners == max_planners:
+                break
 
-        engines, parameters, _ = extract_tuple_from_list(list_engines)
+        planners, parameters = extract_tuple_from_list(list_planners)
 
-        return engines, parameters
+        return planners, parameters
+
+    # def _get_best_engines(
+    #     self,
+    #     problem: "up.model.AbstractProblem",
+    #     operation_mode: "up.engines.engine.OperationMode",
+    #     max_engines: Optional[int] = None,
+    # ) -> Tuple[List[str], List[Dict[str, Any]]]:
+
+    #     features = self._extract_features(problem)
+    #     model_prediction_list = self._get_prediction(features)
+
+    #     n_selected_engines = 0
+    #     list_engines = []
+    #     for engine in model_prediction_list:
+    #         engine = engine.strip()
+    #         if(operation_mode.value in engine):
+    #             list_engines.append(engine)
+    #             n_selected_engines += 1
+    #             if n_selected_engines == max_engines:
+    #                 break
+
+    #     engines, parameters, _ = extract_tuple_from_list(list_engines)
+
+    #     return engines, parameters
  
     def _extract_features(
         self,
@@ -192,8 +209,10 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             #formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
 
-            for i in range(0,len(default_engines)):
-                tmp_str = default_engines[i] + "|" + str(default_parameters[i]) + "|" + default_operation_modes_supported[i].value
+            for i in range(0,len(default_planners)):
+                # tmp_str = default_engines[i] + "|" + str(default_parameters[i]) + "|" + default_operation_modes_supported[i].value
+                tmp_str = default_planners[i] + "|" + str(default_parameters[i])
+
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
