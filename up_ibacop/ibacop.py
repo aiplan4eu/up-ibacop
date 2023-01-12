@@ -25,13 +25,14 @@ default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff
 def extract_tuple_from_list(
         tuple_list: List[str]
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        """This method takes a list of tuples in string format and returns them with the right format"""
         planners = []
         parameters= []
         for tuple in tuple_list:
             tmp = tuple.split("|")
             planner_name = tmp[0]
             planner_parameters = tmp[1]
-            #can't save the parameters list as {} because weka saves the list as {}
+            # Can't save the parameters list with {} because their represent a special character for weka
             planner_parameters = planner_parameters.replace(";", ",")
             planner_parameters = "{" + planner_parameters + "}"
             planner_parameters_dict = ast.literal_eval(planner_parameters)                        
@@ -82,11 +83,17 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def get_credits(**kwargs) -> Optional[Credits]:
         return credits
 
-    # @staticmethod
-    # def supports_operation_mode_for_selection(
-    #     operation_mode: "up.engines.engine.OperationMode",
-    # ) -> bool:
-    #     return operation_mode in default_operation_modes_supported
+    @staticmethod
+    def satisfies(
+        optimality_guarantee: "up.engines.mixins.oneshot_planner.OptimalityGuarantee",
+    ) -> bool:
+        for planner in default_planners:
+            factory = Factory(Environment())
+            engine = factory.engine(planner)
+            if not engine.satisfies(optimality_guarantee):
+                return False
+        return True
+
     def _get_best_oneshot_planners(
         self,
         problem: "up.model.AbstractProblem",
@@ -105,39 +112,13 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             if n_selected_planners == max_planners:
                 break
 
-        planners, parameters = extract_tuple_from_list(list_planners)
+        return extract_tuple_from_list(list_planners)
 
-        return planners, parameters
-
-    # def _get_best_engines(
-    #     self,
-    #     problem: "up.model.AbstractProblem",
-    #     operation_mode: "up.engines.engine.OperationMode",
-    #     max_engines: Optional[int] = None,
-    # ) -> Tuple[List[str], List[Dict[str, Any]]]:
-
-    #     features = self._extract_features(problem)
-    #     model_prediction_list = self._get_prediction(features)
-
-    #     n_selected_engines = 0
-    #     list_engines = []
-    #     for engine in model_prediction_list:
-    #         engine = engine.strip()
-    #         if(operation_mode.value in engine):
-    #             list_engines.append(engine)
-    #             n_selected_engines += 1
-    #             if n_selected_engines == max_engines:
-    #                 break
-
-    #     engines, parameters, _ = extract_tuple_from_list(list_engines)
-
-    #     return engines, parameters
- 
     def _extract_features(
         self,
         problem: "up.model.AbstractProblem"
     ) -> List[str]:
-
+        """This method extracts the features of the 'problem' in input and returns them as a List[str]"""
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
 
@@ -148,10 +129,10 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             w.write_domain(domain_filename)
             w.write_problem(problem_filename)
 
-            # need to change the working dir for the following commands to work properly
+            # Need to change the working dir for the following commands to work properly
             os.chdir(tempdir)
+
             print("\n***start extract features***\n")
-            # features
             command = (
                 "python2.7 "
                 + current_path
@@ -160,7 +141,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " "
                 + problem_filename
             )
-            print(command)
             os.system(command)
 
             command = (
@@ -206,19 +186,15 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
             
-            #formatting the list of names and the list of parameters into a list of tuples to be used by weka
+            # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
-
             for i in range(0,len(default_planners)):
-                # tmp_str = default_engines[i] + "|" + str(default_parameters[i]) + "|" + default_operation_modes_supported[i].value
                 tmp_str = default_planners[i] + "|" + str(default_parameters[i])
-
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
                 tuple_list.append(tmp_str)
             
-            # join file
             temp_result = []
             for t in tuple_list:
                 temp_result.append(str(t) + ",?")
@@ -227,7 +203,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             print("\n***end extract features***\n")
 
-            # go back to the previously working dir
+            # Return to the previous working dir
             os.chdir(current_wdir)
 
             with open(os.path.join(tempdir, "global_features.arff")) as file_features:
@@ -237,6 +213,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         self,
         features: List[str]
     ) -> List[str]:
+        """This method takes the features and returns a sorted list of planners created by weka using a trained model"""
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
 
@@ -245,12 +222,12 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             features_path = os.path.join(tempdir, "global_features.arff")
             with open(features_path, "w") as file:
                 for line in features:
-                    # write each item on a new line
                     file.write("%s\n" % line)
 
+            # Need to change the working dir for the following commands to work properly
             os.chdir(tempdir)
 
-            # Call to `weka.jar` to remove unused `features`
+            # Call to 'weka.jar' to remove unused 'features'
             command = (
                 "java -cp "
                 + current_path
@@ -261,8 +238,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + "/global_features_simply.arff"
             )
             os.system(command)
-            # far predirre a weka
-            # ottiene la lista dei pianificatori ordinata per probabilità di successo
+
+            # Weka returns the predictions
             command = (
                 "java -Xms256m -Xmx1024m -cp "
                 + current_path
@@ -275,6 +252,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + "/outputModel"
             )
             os.system(command)
+
             # The `model` creates the `list` of ALL planners relative to their probability of solving the `problem`
             command = (
                 "python2.7 "
@@ -287,50 +265,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
 
-            # go back to the previously working dir
+            # Return to the previous working dir
             os.chdir(current_wdir)
+
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
-
-    def create_model(self, features) -> str:
-        # per funzionare ha bisogno di:
-        # weka all'interno della dir current_path/models/
-        # e crea il .model in current_path (ovvero dove c'è il file ibacop.py)
-        current_path = os.path.dirname(__file__)
-        with tempfile.TemporaryDirectory() as tempdir:
-            features_path = os.path.join(tempdir, "global_features.arff")
-
-            with open(features_path, "w") as file:
-                for line in features:
-                    # write each item on a new line
-                    file.write("%s\n" % line)
-
-            # Call to `weka.jar` to remove unused `features`
-            command = (
-                "java -cp "
-                + current_path
-                + "/utils/models/weka.jar -Xms256m -Xmx1024m weka.filters.unsupervised.attribute.Remove -R 1-3,18,20,65,78-79,119-120 -i "
-                + features_path
-                + " -o "
-                + tempdir
-                + "/global_features_simply.arff"
-            )
-            os.system(command)
-
-            # Save the model created
-            command = (
-                "java -Xms256m -Xmx1024m -cp "
-                + current_path
-                + "/utils/models/weka.jar weka.classifiers.meta.RotationForest  -t "
-                + tempdir
-                + "/global_features_simply.arff -d "
-                + current_path
-                + "/RotationForest.model"
-            )
-            os.system(command)
-
-            model_path = os.path.join(current_path, "RotationForest.model")
-            if os.path.isfile(model_path):
-                return model_path
-            else:
-                return None
