@@ -82,7 +82,7 @@ class Result:
 			planner = self.clear_planner_value(string)
 			result = Result(inst, actual, predicted, error, planner)
 		else:
-			print "Default case"
+			print("Default case")
 		self = result
 		return self
 		

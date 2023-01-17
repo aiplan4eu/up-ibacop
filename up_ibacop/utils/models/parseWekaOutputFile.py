@@ -3,8 +3,8 @@
 import sys
 import string
 import os
-from Result import Result
-from Result import Instance
+from up_ibacop.utils.models.Result import Result
+from up_ibacop.utils.models.Result import Instance
 from operator import itemgetter, attrgetter
 
 STRATEGY = 4
@@ -73,8 +73,8 @@ def split_problems(data, listData):
 	n = 0
 	aux = 1
 	for i in data:
-		print "*****", aux, len(listData)
-		print i
+		print("*****", aux, len(listData))
+		print(i) 
 		if(aux < 4):
 			listData[n].append(i)
 			aux =  aux + 1
@@ -84,9 +84,9 @@ def split_problems(data, listData):
 			aux = 1
 	return listData
 
-if(len(sys.argv) >= 3):
+def parseOutputFile(outputModel, listPlanner):
 	data = []
-	data = readFile(data, sys.argv[1])
+	data = readFile(data, outputModel)
 	data = clear_data(data)
 	results = []
 	for i in data:
@@ -95,7 +95,7 @@ if(len(sys.argv) >= 3):
 		results.append(result)
 	## from more than one problem
 	listData = []
-	print "results", len(results)
+	print("results", len(results))
 	for i in range(int(len(results)/3)):
 		listData.append([])
 	listData = split_problems(results, listData)
@@ -106,13 +106,13 @@ if(len(sys.argv) >= 3):
 	sortedData = []
 	sortedData = sorted_results(list_aux, sortedData)
 	
-	if(len(sys.argv) == 4):
-		writeFile(sortedData, sys.argv[2], int(sys.argv[3]))
-	else:
-		writeFile(sortedData, sys.argv[2], STRATEGY)
+	#if(len(sys.argv) == 4):
+	#	writeFile(sortedData, sys.argv[2], int(sys.argv[3]))
+	#else:
+	writeFile(sortedData, listPlanner, STRATEGY)
 		
-else:
-	print "Need python parseWekaOutputFile.py input input2"
-	print "input >> output model"
-	print "input >> domain,problem"
-	sys.exit(-1)
+# else:
+# 	print("Need python parseWekaOutputFile.py input input2")
+# 	print("input >> output model")
+# 	print("input >> domain,problem")
+# 	sys.exit(-1)
