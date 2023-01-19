@@ -5,6 +5,7 @@ from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
 from unified_planning.engines import Engine, Credits, Factory
 from unified_planning.io.pddl_writer import PDDLWriter
+from unified_planning.exceptions import UPUsageError
 from typing import Any, Dict, List, Optional, Tuple
 from up_ibacop.utils.models import joinFile
 from up_ibacop.utils.models import parseWekaOutputFile
@@ -69,7 +70,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
     @staticmethod
     def supported_kind() -> ProblemKind:
-        pass
+        raise UPUsageError
         
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
@@ -253,21 +254,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + "/outputModel"
             )
             os.system(command)
-            
 
-
-            # The `model` creates the `list` of ALL planners relative to their probability of solving the `problem`
-            # command = (
-            #     "python2.7 "
-            #     + current_path
-            #     + "/utils/models/parseWekaOutputFile.py "
-            #     + tempdir
-            #     + "/outputModel "
-            #     + tempdir
-            #     + "/listPlanner"
-            # )
-            # os.system(command)
             parseWekaOutputFile.parseOutputFile(os.path.join(tempdir, "outputModel"), os.path.join(tempdir, "listPlanner"))
+
             # Return to the previous working dir
             os.chdir(current_wdir)
 

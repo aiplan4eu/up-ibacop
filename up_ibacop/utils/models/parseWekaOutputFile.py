@@ -110,9 +110,3 @@ def parseOutputFile(outputModel, listPlanner):
 	#	writeFile(sortedData, sys.argv[2], int(sys.argv[3]))
 	#else:
 	writeFile(sortedData, listPlanner, STRATEGY)
-		
-# else:
-# 	print("Need python parseWekaOutputFile.py input input2")
-# 	print("input >> output model")
-# 	print("input >> domain,problem")
-# 	sys.exit(-1)
