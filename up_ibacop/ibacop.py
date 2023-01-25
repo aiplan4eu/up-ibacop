@@ -12,17 +12,21 @@ from up_ibacop.utils.models import parseWekaOutputFile
 import tempfile
 import ast
 
-credits = Credits('IBACOP',
-                  'Isabel(?)',
-                  '*@gmail.com',
-                  'https://*/',
-                  '?',
-                  '?',
-                  '?')
+credits = Credits('IBACOP2',
+                  'Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez',
+                  'icenamorg@gmail.com',
+                  ' ',
+                  'GPL',
+                  'Instance Based Configured Portfolios ',
+                  'IBACOP2 is a system for the configuration of a portfolio of planners based on the features of a problem instance')
+
 
 rootpath = os.path.dirname(__file__)
-default_model_path = os.path.join(rootpath, "model/RotationForest.model")
-default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff")
+# default_model_path = os.path.join(rootpath, "model/RotationForest.model")
+default_model_path = os.path.join(rootpath, "model", "RotationForest.model")
+# default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff")
+default_dataset_path = os.path.join(rootpath, "model", "global_features_simply.arff")
+
 
 def extract_tuple_from_list(
         tuple_list: List[str]
@@ -135,27 +139,31 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             os.chdir(tempdir)
 
             print("\n***start extract features***\n")
+
+            translate_path = os.path.join(current_path, "utils", "features", "translate", "translate.py")
             command = (
-                "python2.7 "
-                + current_path
-                + "/utils/features/translate/translate.py "
+                "python "
+                + translate_path
+                + " "
                 + domain_filename
                 + " "
                 + problem_filename
             )
             os.system(command)
 
+            preprocess_path = os.path.join(current_path, "utils", "features", "preprocess", "preprocess")
+            output_sas_path = os.path.join(tempdir, "output.sas")
             command = (
-                current_path
-                + "/utils/features/preprocess/preprocess < "
-                + tempdir
-                + "/output.sas"
+                preprocess_path
+                + " < "
+                + output_sas_path
             )
             os.system(command)
 
+            roller_path = os.path.join(current_path, "utils", "features", "ff-learner" ,"roller3.0")
             command = (
-                current_path
-                + "/utils/features/ff-learner/roller3.0 -o "
+                roller_path
+                + " -o "
                 + domain_filename
                 + " -f "
                 + problem_filename
@@ -163,28 +171,62 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
 
+#inizio traduzione .sh
+            translate_path = os.path.join(current_path, "utils", "features", "translate", "translate.py")
             command = (
-                current_path
-                + "/utils/features/heuristics/training.sh "
+                "python "
+                + translate_path
+                + " "
                 + domain_filename
                 + " "
                 + problem_filename
             )
             os.system(command)
 
+            preprocess_path = os.path.join(current_path, "utils", "features", "preprocess", "preprocess")
+            heuristics_sas_path = os.path.join(tempdir, "heuristics.sas")
             command = (
-                current_path
-                + '/utils/search/downward --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
-                + tempdir
-                + "/output"
+                preprocess_path
+                + " < "
+                + heuristics_sas_path
             )
             os.system(command)
 
+            downward_path = os.path.join(current_path, "utils", "search", "downward")
+            heuristic_path = os.path.join(tempdir, "heuristic")
             command = (
-                current_path
-                + "/utils/search-mercury/downward ipc seq-agl-mercury <"
-                + tempdir
-                + "/output"
+                "ulimit -t 100; "
+                + downward_path
+                + ' --search "eager_greedy([add,blind,cg,cea,ff,goalcount,lmcount(lm_rhw(reasonable_orders=true,lm_cost_type=2,cost_type=2)),lmcut,hmax])" < '
+                + heuristic_path
+                + ";)"
+            )
+            os.system(command)
+#fine traduzione .sh
+            # training_sh_path = os.path.join(current_path, "utils", "features", "heuristics" ,"training.sh")
+            # command = (
+            #     training_sh_path
+            #     + " "
+            #     + domain_filename
+            #     + " "
+            #     + problem_filename
+            # )
+            # os.system(command)
+
+            downward_path = os.path.join(current_path, "utils", "search", "downward")
+            output_path = os.path.join(tempdir, "output")
+            command = (
+                downward_path
+                + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
+                + output_path
+            )
+            os.system(command)
+
+            mercury_downward_path = os.path.join(current_path, "utils", "search-mercury", "downward")
+            command = (
+                mercury_downward_path
+                + " <"
+                + output_path
             )
             os.system(command)
             
