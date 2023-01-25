@@ -225,7 +225,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             mercury_downward_path = os.path.join(current_path, "utils", "search-mercury", "downward")
             command = (
                 mercury_downward_path
-                + " <"
+                + " ipc seq-agl-mercury <"
                 + output_path
             )
             os.system(command)
