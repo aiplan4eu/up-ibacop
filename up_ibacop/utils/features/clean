@@ -1,0 +1,30 @@
+#!/bin/bash
+BASEDIR="$(dirname "$0")"
+ROOT=$PWD
+cd "$BASEDIR/ff-learner"
+make clean
+rm roller3.0
+cd $ROOT
+cd "$BASEDIR/heuristics/search"
+make clean
+make distclean
+cd $ROOT
+cd "$BASEDIR/heuristics/preprocess"
+make clean 
+make distclean
+cd $ROOT
+cd "$BASEDIR/heuristics/translate"
+rm *.pyc
+cd pddl 
+rm *.pyc
+cd $ROOT
+cd "$BASEDIR/preprocess"
+make clean 
+make distclean
+cd $ROOT
+cd "$BASEDIR/translate"
+rm *.pyc
+cd pddl 
+rm *.pyc
+cd $ROOT
+exit
