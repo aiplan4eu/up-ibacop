@@ -215,9 +215,9 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                 # Look for matching add effect; ignore this del effect if found.
                 for cond in eff_condition:
                     if cond not in eff_conditions and [] not in eff_conditions:
-                        print "Condition:"
-                        print cond
-                        print "Operator:"
+                        print ("Condition:")
+                        print (cond)
+                        print ("Operator:")
                         operator.dump()
                         assert False, "Add effect with uncertain del effect partner?"
                 if other_val == val:
@@ -248,8 +248,8 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                             # decent check that the precondition is indeed inconsistent
                             # (using *all* mutexes), but that seems tough with this
                             # convoluted code, so we just warn and reject the operator.
-                            print "Warning: %s rejected. Cross your fingers." % (
-                                operator.name)
+                            print ("Warning: %s rejected. Cross your fingers." % (
+                                operator.name))
                             if DEBUG:
                                 operator.dump()
                             return None
@@ -419,7 +419,7 @@ def translate_task(strips_to_sas, ranges, translation_key,
                              operators, axioms, metric)
 
 def unsolvable_sas_task(msg):
-    print "%s! Generating unsolvable task..." % msg
+    print ("%s! Generating unsolvable task..." % msg)
     variables = sas_tasks.SASVariables(
         [2], [-1], [["Atom dummy(val1)", "Atom dummy(val2)"]])
     # We create no mutexes: the only possible mutex is between
@@ -480,9 +480,9 @@ def pddl_to_sas(task):
             task.init, goal_list, actions, axioms, task.use_min_cost_metric,
             implied_facts)
 
-    print "%d implied effects removed" % removed_implied_effect_counter
-    print "%d effect conditions simplified" % simplified_effect_condition_counter
-    print "%d implied preconditions added" % added_implied_precondition_counter
+    print ("%d implied effects removed" % removed_implied_effect_counter)
+    print ("%d effect conditions simplified" % simplified_effect_condition_counter)
+    print ("%d implied preconditions added" % added_implied_precondition_counter)
 
     if DETECT_UNREACHABLE:
         with timers.timing("Detecting unreachable propositions", block=True):
@@ -502,7 +502,7 @@ def build_mutex_key(strips_to_sas, groups):
                 for var, val in strips_to_sas[fact]:
                     group_key.append((var, val))
             else:
-                print "not in strips_to_sas, left out:", fact
+                print ("not in strips_to_sas, left out:", fact)
         group_keys.append(group_key)
     return group_keys
 
@@ -553,15 +553,15 @@ def build_implied_facts(strips_to_sas, groups, mutex_groups):
 
 
 def dump_statistics(sas_task):
-    print "Translator variables: %d" % len(sas_task.variables.ranges)
+    print ("Translator variables: %d" % len(sas_task.variables.ranges))
     print ("Translator derived variables: %d" %
            len([layer for layer in sas_task.variables.axiom_layers if layer >= 0]))
-    print "Translator facts: %d" % sum(sas_task.variables.ranges)
-    print "Translator mutex groups: %d" % len(sas_task.mutexes)
+    print ("Translator facts: %d" % sum(sas_task.variables.ranges))
+    print ("Translator mutex groups: %d" % len(sas_task.mutexes))
     print ("Translator total mutex groups size: %d" %
            sum(mutex.get_encoding_size() for mutex in sas_task.mutexes))
-    print "Translator operators: %d" % len(sas_task.operators)
-    print "Translator task size: %d" % sas_task.get_encoding_size()
+    print ("Translator operators: %d" % len(sas_task.operators))
+    print ("Translator task size: %d" % sas_task.get_encoding_size())
 
 
 if __name__ == "__main__":
@@ -580,4 +580,4 @@ if __name__ == "__main__":
 
     with timers.timing("Writing output"):
         sas_task.output(file("heuristics.sas", "w"))
-    print "Done! %s" % timer
+    print ("Done! %s" % timer)
