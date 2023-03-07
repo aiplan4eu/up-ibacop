@@ -22,9 +22,7 @@ credits = Credits('IBACOP2',
 
 
 rootpath = os.path.dirname(__file__)
-# default_model_path = os.path.join(rootpath, "model/RotationForest.model")
 default_model_path = os.path.join(rootpath, "model", "RotationForest.model")
-# default_dataset_path = os.path.join(rootpath, "model/global_features_simply.arff")
 default_dataset_path = os.path.join(rootpath, "model", "global_features_simply.arff")
 
 
@@ -38,7 +36,7 @@ def extract_tuple_from_list(
             tmp = tuple.split("|")
             planner_name = tmp[0]
             planner_parameters = tmp[1]
-            # Can't save the parameters list with {} because their represent a special character for weka
+            # Can't save the parameters list with {} because they represent a special character for weka
             planner_parameters = planner_parameters.replace(";", ",")
             planner_parameters = "{" + planner_parameters + "}"
             planner_parameters_dict = ast.literal_eval(planner_parameters)                        
@@ -142,7 +140,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             translate_path = os.path.join(current_path, "utils", "features", "translate", "translate.py")
             command = (
-                "python "
+                "python2.7 "
                 + translate_path
                 + " "
                 + domain_filename
@@ -170,39 +168,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " -S 28"
             )
             os.system(command)
-
-# #inizio traduzione .sh
-#             translate_path = os.path.join(current_path, "utils", "features", "heuristics", "translate", "translate.py")
-#             command = (
-#                 "python "
-#                 + translate_path
-#                 + " "
-#                 + domain_filename
-#                 + " "
-#                 + problem_filename
-#             )
-#             os.system(command)
-
-#             preprocess_path = os.path.join(current_path, "utils", "features", "heuristics", "preprocess", "preprocess")
-#             heuristics_sas_path = os.path.join(tempdir, "heuristics.sas")
-#             command = (
-#                 preprocess_path
-#                 + " < "
-#                 + heuristics_sas_path
-#             )
-#             os.system(command)
-
-#             downward_path = os.path.join(current_path, "utils", "features", "heuristics", "search", "downward")
-#             heuristic_path = os.path.join(tempdir, "heuristic")
-#             command = (
-#                 "ulimit -t 100; "
-#                 + downward_path
-#                 + ' --search "eager_greedy([add,blind,cg,cea,ff,goalcount,lmcount(lm_rhw(reasonable_orders=true,lm_cost_type=2,cost_type=2)),lmcut,hmax])" < '
-#                 + heuristic_path
-#                 + ";)"
-#             )
-#             os.system(command)
-#fine traduzione .sh
+            
             training_sh_path = os.path.join(current_path, "utils", "features", "heuristics" ,"training.sh")
             command = (
                 training_sh_path
