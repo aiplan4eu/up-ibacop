@@ -74,7 +74,7 @@ class Result:
 			string = string.strip()
 			space = string.find(" ")
 			error = float(string[:space])
-			if(predicted.find("false")>= 0):
+			if(predicted.lower().find("false")>= 0):
 				error = 1 - error
 				
 			string = string[(space + 1):]
