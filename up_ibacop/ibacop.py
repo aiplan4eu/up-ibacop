@@ -140,7 +140,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             translate_path = os.path.join(current_path, "utils", "features", "translate", "translate.py")
             command = (
-                "python2.7 "
+                "python "
                 + translate_path
                 + " "
                 + domain_filename

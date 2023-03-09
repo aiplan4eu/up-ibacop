@@ -89,7 +89,7 @@ MAX_TIME = 300
 
 def find_invariants(task, reachable_action_params):
     candidates = deque(get_initial_invariants(task))
-    print len(candidates), "initial candidates"
+    print(len(candidates), "initial candidates")
     seen_candidates = set(candidates)
 
     balance_checker = BalanceChecker(task, reachable_action_params)
@@ -103,7 +103,7 @@ def find_invariants(task, reachable_action_params):
     while candidates:
         candidate = candidates.popleft()
         if time.clock() - start_time > MAX_TIME:
-            print "Time limit reached, aborting invariant generation"
+            print("Time limit reached, aborting invariant generation")
             return
         if candidate.check_balance(balance_checker, enqueue_func):
             yield candidate
@@ -139,16 +139,16 @@ def get_groups(task, reachable_action_params=None):
 if __name__ == "__main__":
     import pddl
     import normalize
-    print "Parsing..."
+    print("Parsing...")
     task = pddl.open()
-    print "Normalizing..."
+    print("Normalizing...")
     normalize.normalize(task)
-    print "Finding invariants..."
-    print "NOTE: not passing in reachable_action_params."
-    print "This means fewer invariants might be found."
+    print("Finding invariants...")
+    print("NOTE: not passing in reachable_action_params.")
+    print("This means fewer invariants might be found.")
     for invariant in find_invariants(task, None):
-        print invariant
-    print "Finding fact groups..."
+        print(invariant)
+    print("Finding fact groups...")
     groups = get_groups(task)
     for group in groups:
-        print "[%s]" % ", ".join(map(str, group))
+        print("[%s]" % ", ".join(map(str, group)))

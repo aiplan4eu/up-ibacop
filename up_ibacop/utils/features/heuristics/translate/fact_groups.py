@@ -77,7 +77,7 @@ def choose_groups(groups, reachable_facts, partial_encoding=True):
         group = queue.pop()
         uncovered_facts.difference_update(group)
         result.append(group)
-    print len(uncovered_facts), "uncovered facts"
+    print(len(uncovered_facts), "uncovered facts")
     #for fact in uncovered_facts:
     #  print fact
     result += [[fact] for fact in uncovered_facts]
@@ -121,6 +121,6 @@ def compute_groups(task, atoms, reachable_action_params, partial_encoding=True):
     if DEBUG:
         for group in groups:
             if len(group) >= 2:
-                print "{%s}" % ", ".join(map(str, group))
+                print("{%s}" % ", ".join(map(str, group)))
 
     return groups, mutex_groups, translation_key
