@@ -25,8 +25,8 @@ number_of_planners = 2
 with PortfolioSelector(name='ibacop') as portfolioSelector:
     planners, parameters = portfolioSelector.get_best_oneshot_planners(problem, number_of_planners)
 
-for single_planner in planners:    
-  with OneshotPlanner(name='single_planner') as planner:
+for single_planner, single_param in zip(planners, parameters):    
+  with OneshotPlanner(name=single_planner, params=single_param) as planner:
       result = planner.solve(problem)
       if result.status in unified_planning.engines.results.POSITIVE_OUTCOMES:
           print(f"{planner.name} found this plan: {result.plan}")
