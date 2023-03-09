@@ -40,6 +40,8 @@ Currently the configurator makes use of a predictive model containing the follow
 ## Operative modes of UP currently used
 PortfolioSelector
 ## Acknowledgements
+<img src="https://www.aiplan4eu-project.eu/wp-content/uploads/2021/07/euflag.png" width="60" height="40">
+
 This library is being developed for the AIPlan4EU H2020 project (https://aiplan4eu-project.eu) that is funded by the European Commission under grant agreement number 101016442.
 
 It integrates the IBaCoP2 configurator, which developed by Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez. More information can be found at *The IBaCoP Planning System: Instance-Based Configured Portfolios.* PhD thesis, Universidad Carlos III de Madrid, 2016. 
