@@ -12,13 +12,13 @@ from up_ibacop.utils.models import parseWekaOutputFile
 import tempfile
 import ast
 
-credits = Credits('IBACOP2',
+credits = Credits('IBaCoP2',
                   'Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez',
                   'icenamorg@gmail.com',
                   ' ',
                   'GPL',
                   'Instance Based Configured Portfolios ',
-                  'IBACOP2 is a system for the configuration of a portfolio of planners based on the features of a problem instance')
+                  'IBaCoP2 is a system for the configuration of a portfolio of planners based on the features of a problem instance')
 
 
 rootpath = os.path.dirname(__file__)
