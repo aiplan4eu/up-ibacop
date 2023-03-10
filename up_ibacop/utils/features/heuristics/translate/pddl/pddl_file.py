@@ -1,23 +1,21 @@
 #! /usr/bin/env python
 # -*- coding: latin-1 -*-
-import builtins
 
 import sys
 import os.path
 import re
 
-from . import parser
+import parser
 
-from . import tasks
+import tasks
 
 def parse_pddl_file(type, filename):
     try:
-        # The builtin open function is shadowed by this module's open function.
-        return parser.parse_nested_list(builtins.open(filename))
-    except IOError as e:
+        return parser.parse_nested_list(file(filename))
+    except (IOError, e):
         raise SystemExit("Error: Could not read file: %s\nReason: %s." %
-                         (e.filename, e))
-    except parser.ParseError as e:
+            (e.filename, e))
+    except (parser.ParseError, e):
         raise SystemExit("Error: Could not parse %s file: %s\n" % (type, filename))
 
 def open(task_filename=None, domain_filename=None):

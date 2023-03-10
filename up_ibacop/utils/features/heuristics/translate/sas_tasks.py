@@ -53,7 +53,7 @@ class SASVariables:
                 axiom_str = " [axiom layer %d]" % axiom_layer
             else:
                 axiom_str = ""
-            print("v%d in {%s}%s" % (var, range(rang), axiom_str))
+            print "v%d in {%s}%s" % (var, range(rang), axiom_str)
     def output(self, stream):
         print >> stream, len(self.ranges)
         for var, (rang, axiom_layer, values) in enumerate(zip(
@@ -76,7 +76,7 @@ class SASMutexGroup:
         self.facts = facts
     def dump(self):
         for var, val in self.facts:
-            print("v%d: %d" % (var, val))
+            print "v%d: %d" % (var, val)
     def output(self, stream):
         print >> stream, "begin_mutex_group"
         print >> stream, len(self.facts)
@@ -92,7 +92,7 @@ class SASInit:
     def dump(self):
         for var, val in enumerate(self.values):
             if val != -1:
-                print("v%d: %d" % (var, val))
+                print "v%d: %d" % (var, val)
     def output(self, stream):
         print >> stream, "begin_state"
         for val in self.values:
@@ -104,7 +104,7 @@ class SASGoal:
         self.pairs = sorted(pairs)
     def dump(self):
         for var, val in self.pairs:
-            print("v%d: %d" % (var, val))
+            print "v%d: %d" % (var, val)
     def output(self, stream):
         print >> stream, "begin_goal"
         print >> stream, len(self.pairs)
@@ -121,17 +121,17 @@ class SASOperator:
         self.pre_post = sorted(pre_post)
         self.cost = cost
     def dump(self):
-        print(self.name)
-        print("Prevail:")
+        print self.name
+        print "Prevail:"
         for var, val in self.prevail:
-            print("  v%d: %d" % (var, val))
-        print("Pre/Post:")
+            print "  v%d: %d" % (var, val)
+        print "Pre/Post:"
         for var, pre, post, cond in self.pre_post:
             if cond:
                 cond_str = " [%s]" % ", ".join(["%d: %d" % tuple(c) for c in cond])
             else:
                 cond_str = ""
-            print("  v%d: %d -> %d%s" % (var, pre, post, cond_str))
+            print "  v%d: %d -> %d%s" % (var, pre, post, cond_str)
     def output(self, stream):
         print >> stream, "begin_operator"
         print >> stream, self.name[1:-1]
@@ -163,12 +163,12 @@ class SASAxiom:
         for _, val in condition:
             assert val >= 0, condition
     def dump(self):
-        print("Condition:")
+        print "Condition:"
         for var, val in self.condition:
-            print("  v%d: %d" % (var, val))
-        print("Effect:")
+            print "  v%d: %d" % (var, val)
+        print "Effect:"
         var, val = self.effect
-        print("  v%d: %d" % (var, val))
+        print "  v%d: %d" % (var, val)
     def output(self, stream):
         print >> stream, "begin_rule"
         print >> stream, len(self.condition)

@@ -2,7 +2,7 @@
 # In the future, use explicitly relative imports or absolute
 # imports as a better solution.
 
-from . import conditions
+import conditions
 
 import graph
 
