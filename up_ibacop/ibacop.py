@@ -12,13 +12,15 @@ from up_ibacop.utils.models import parseWekaOutputFile
 import tempfile
 import ast
 
-credits = Credits('IBaCoP2',
-                  'Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez',
-                  'icenamorg@gmail.com',
-                  ' ',
-                  'GPL',
-                  'Instance Based Configured Portfolios ',
-                  'IBaCoP2 is a system for the configuration of a portfolio of planners based on the features of a problem instance')
+credits = Credits(
+    "IBaCoP2",
+    "Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez",
+    "icenamorg@gmail.com",
+    " ",
+    "GPL",
+    "Instance Based Configured Portfolios ",
+    "IBaCoP2 is a system for the configuration of a portfolio of planners based on the features of a problem instance",
+)
 
 
 rootpath = os.path.dirname(__file__)
@@ -27,39 +29,42 @@ default_dataset_path = os.path.join(rootpath, "model", "global_features_simply.a
 
 
 def extract_tuple_from_list(
-        tuple_list: List[str]
-    ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        """This method takes a list of tuples in string format and returns them with the right format"""
-        planners = []
-        parameters= []
-        for tuple in tuple_list:
-            tmp = tuple.split("|")
-            planner_name = tmp[0]
-            planner_parameters = tmp[1]
-            # Can't save the parameters list with {} because they represent a special character for weka
-            planner_parameters = planner_parameters.replace(";", ",")
-            planner_parameters = "{" + planner_parameters + "}"
-            planner_parameters_dict = ast.literal_eval(planner_parameters)                        
+    tuple_list: List[str],
+) -> Tuple[List[str], List[Dict[str, Any]]]:
+    """This method takes a list of tuples in string format and returns them with the right format"""
+    planners = []
+    parameters = []
+    for tuple in tuple_list:
+        tmp = tuple.split("|")
+        planner_name = tmp[0]
+        planner_parameters = tmp[1]
+        # Can't save the parameters list with {} because they represent a special character for weka
+        planner_parameters = planner_parameters.replace(";", ",")
+        planner_parameters = "{" + planner_parameters + "}"
+        planner_parameters_dict = ast.literal_eval(planner_parameters)
 
-            planners.append(planner_name)
-            parameters.append(planner_parameters_dict)
-        return planners, parameters
+        planners.append(planner_name)
+        parameters.append(planner_parameters_dict)
+    return planners, parameters
+
 
 def init_planners_data() -> Tuple[List[str], List[Dict[str, Any]]]:
-        word = "@attribute planner"
-        with open(default_dataset_path, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                if line.find(word) != -1:
-                    line = line.replace(word, "")
-                    line = line.replace("{", "")
-                    line = line.replace("}", "")
-                    line = line.replace(" ", "")
-                    planners, parameters = extract_tuple_from_list(line.strip().split(","))
+    word = "@attribute planner"
+    with open(default_dataset_path, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.find(word) != -1:
+                line = line.replace(word, "")
+                line = line.replace("{", "")
+                line = line.replace("}", "")
+                line = line.replace(" ", "")
+                planners, parameters = extract_tuple_from_list(line.strip().split(","))
 
-            return planners, parameters
+        return planners, parameters
+
 
 default_planners, default_parameters = init_planners_data()
+
 
 class Ibacop(PortfolioSelectorMixin, Engine):
     def __init__(self):
@@ -68,12 +73,12 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
     @property
     def name(self) -> str:
-        return 'ibacop'
+        return "ibacop"
 
     @staticmethod
     def supported_kind() -> ProblemKind:
         raise UPUsageError
-        
+
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
         for planner in default_planners:
@@ -103,7 +108,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
         problem: "up.model.AbstractProblem",
         max_planners: Optional[int] = None,
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
-    
+
         features = self._extract_features(problem)
         model_prediction_list = self._get_prediction(features)
 
@@ -118,10 +123,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
         return extract_tuple_from_list(list_planners)
 
-    def _extract_features(
-        self,
-        problem: "up.model.AbstractProblem"
-    ) -> List[str]:
+    def _extract_features(self, problem: "up.model.AbstractProblem") -> List[str]:
         """This method extracts the features of the 'problem' in input and returns them as a List[str]"""
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
@@ -138,7 +140,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             print("\n***start extract features***\n")
 
-            translate_path = os.path.join(current_path, "utils", "features", "translate", "translate.py")
+            translate_path = os.path.join(
+                current_path, "utils", "features", "translate", "translate.py"
+            )
             command = (
                 "python "
                 + translate_path
@@ -149,16 +153,16 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
 
-            preprocess_path = os.path.join(current_path, "utils", "features", "preprocess", "preprocess")
-            output_sas_path = os.path.join(tempdir, "output.sas")
-            command = (
-                preprocess_path
-                + " < "
-                + output_sas_path
+            preprocess_path = os.path.join(
+                current_path, "utils", "features", "preprocess", "preprocess"
             )
+            output_sas_path = os.path.join(tempdir, "output.sas")
+            command = preprocess_path + " < " + output_sas_path
             os.system(command)
 
-            roller_path = os.path.join(current_path, "utils", "features", "ff-learner" ,"roller3.0")
+            roller_path = os.path.join(
+                current_path, "utils", "features", "ff-learner", "roller3.0"
+            )
             command = (
                 roller_path
                 + " -o "
@@ -168,15 +172,11 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " -S 28"
             )
             os.system(command)
-            
-            training_sh_path = os.path.join(current_path, "utils", "features", "heuristics" ,"training.sh")
-            command = (
-                training_sh_path
-                + " "
-                + domain_filename
-                + " "
-                + problem_filename
+
+            training_sh_path = os.path.join(
+                current_path, "utils", "features", "heuristics", "training.sh"
             )
+            command = training_sh_path + " " + domain_filename + " " + problem_filename
             os.system(command)
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
@@ -188,23 +188,21 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
 
-            mercury_downward_path = os.path.join(current_path, "utils", "search-mercury", "downward")
-            command = (
-                mercury_downward_path
-                + " ipc seq-agl-mercury <"
-                + output_path
+            mercury_downward_path = os.path.join(
+                current_path, "utils", "search-mercury", "downward"
             )
+            command = mercury_downward_path + " ipc seq-agl-mercury <" + output_path
             os.system(command)
-            
+
             # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
-            for i in range(0,len(default_planners)):
+            for i in range(0, len(default_planners)):
                 tmp_str = default_planners[i] + "|" + str(default_parameters[i])
                 tmp_str = tmp_str.replace("{", "")
                 tmp_str = tmp_str.replace("}", "")
                 tmp_str = tmp_str.replace(",", ";")
                 tuple_list.append(tmp_str)
-            
+
             temp_result = []
             for t in tuple_list:
                 temp_result.append(str(t) + ",?")
@@ -219,10 +217,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             with open(os.path.join(tempdir, "global_features.arff")) as file_features:
                 return file_features.readlines()
 
-    def _get_prediction(
-        self,
-        features: List[str]
-    ) -> List[str]:
+    def _get_prediction(self, features: List[str]) -> List[str]:
         """This method takes the features and returns a sorted list of planners created by weka using a trained model"""
         current_path = os.path.dirname(__file__)
         current_wdir = os.getcwd()
@@ -263,7 +258,10 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             )
             os.system(command)
 
-            parseWekaOutputFile.parseOutputFile(os.path.join(tempdir, "outputModel"), os.path.join(tempdir, "listPlanner"))
+            parseWekaOutputFile.parseOutputFile(
+                os.path.join(tempdir, "outputModel"),
+                os.path.join(tempdir, "listPlanner"),
+            )
 
             # Return to the previous working dir
             os.chdir(current_wdir)
