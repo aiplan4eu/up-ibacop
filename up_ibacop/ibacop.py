@@ -209,7 +209,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             joinFile.create_globals(tempdir, temp_result, tuple_list)
 
-            print("\n***end extract features***\n")
+            print("\n***end extract features***")
 
             # Return to the previous working dir
             os.chdir(current_wdir)

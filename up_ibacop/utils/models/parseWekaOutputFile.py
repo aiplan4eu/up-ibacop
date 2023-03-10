@@ -73,8 +73,8 @@ def split_problems(data, listData):
 	n = 0
 	aux = 1
 	for i in data:
-		print("*****", aux, len(listData))
-		print(i) 
+		# print("*****", aux, len(listData))
+		# print(i) 
 		if(aux < 4):
 			listData[n].append(i)
 			aux =  aux + 1
@@ -95,7 +95,7 @@ def parseOutputFile(outputModel, listPlanner):
 		results.append(result)
 	## from more than one problem
 	listData = []
-	print("results", len(results))
+	# print("results", len(results))
 	for i in range(int(len(results)/3)):
 		listData.append([])
 	listData = split_problems(results, listData)
