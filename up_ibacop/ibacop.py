@@ -174,7 +174,14 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             training_sh_path = os.path.join(
                 current_path, "utils", "features", "heuristics", "training.sh"
             )
-            command = training_sh_path + " " + domain_filename + " " + problem_filename + " 2> /dev/null"
+            command = (
+                training_sh_path
+                + " "
+                + domain_filename
+                + " "
+                + problem_filename
+                + " 2> /dev/null"
+            )
             os.popen(command).read()
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
@@ -182,7 +189,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             command = (
                 downward_path
                 + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
-                + output_path 
+                + output_path
                 + " 2> /dev/null"
             )
             os.popen(command).read()

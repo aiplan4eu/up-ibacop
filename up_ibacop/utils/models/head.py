@@ -1,22 +1,28 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__      = "Isabel Cenamor"
-__copyright__   = "Copyright 2018, Portfolio Project Features"
+__author__ = "Isabel Cenamor"
+__copyright__ = "Copyright 2018, Portfolio Project Features"
 __email__ = "icenamor@inf.uc3m.es"
 import time
 from datetime import datetime
+
 # -----------------------------------------------------------------------------
 ## Class store the weka head
 # -----------------------------------------------------------------------------
 class Head:
-    def __init__(self, list_head, planner_list):	
+    def __init__(self, list_head, planner_list):
         "store the Weka head"
         self.head = list_head
         self.planner_list = planner_list
         self.set_values(planner_list)
+
     def set_values(self, planner_list):
         tp = int(time.time())
-        problem = "@relation problem-to-evaluate" + str(datetime.now().strftime('%Y-%m-%d%H:%M:%S'))+ "\n\n"
+        problem = (
+            "@relation problem-to-evaluate"
+            + str(datetime.now().strftime("%Y-%m-%d%H:%M:%S"))
+            + "\n\n"
+        )
         self.head.append(problem)
         self.head.append("@attribute domain string\n")
         self.head.append("@attribute task_name string\n")
@@ -108,7 +114,7 @@ class Head:
         self.head.append("@attribute rp_goal_balance_min numeric\n")
         self.head.append("@attribute rp_goal_balance_avg numeric\n")
         self.head.append("@attribute rp_goal_balance_var numeric\n")
-        
+
         self.head.append("@attribute balance_Ratio numeric\n")
         self.head.append("@attribute Unbalance_Ratio numeric\n")
         self.head.append("@attribute Balance_Distorsion numeric\n")
@@ -122,50 +128,48 @@ class Head:
         self.head.append("@attribute Landmark_count numeric\n")
         self.head.append("@attribute Landmark-cut numeric\n")
         self.head.append("@attribute Max numeric\n")
-        
-           ##landMark graph 
-        
-           ## features<<landmarks<<","<<numberEdges<<","<<numberEdges/double(landmarks)<<",";
+
+        ##landMark graph
+
+        ## features<<landmarks<<","<<numberEdges<<","<<numberEdges/double(landmarks)<<",";
         ##  features<<numberFather<<","<<numberChildren<< ","<<nodosbetween<<",";
-    ##features<<avginput<<","<<maxinput<< ","<<stdinput<<","<<avgoutput<<","<<maxoutput<<","<<stdoutput<<endl;
-    
+        ##features<<avginput<<","<<maxinput<< ","<<stdinput<<","<<avgoutput<<","<<maxoutput<<","<<stdoutput<<endl;
+
         self.head.append("@attribute n_landmarks numeric\n")
         self.head.append("@attribute numberEdges numeric\n")
         self.head.append("@attribute edVaratioLand numeric\n")
         self.head.append("@attribute numberFatherNodes numeric\n")
         self.head.append("@attribute numberChildrenNodes numeric\n")
         self.head.append("@attribute nodosbetween numeric\n")
-        
+
         self.head.append("@attribute avginput numeric\n")
         self.head.append("@attribute maxinput numeric\n")
         self.head.append("@attribute stdinput numeric\n")
-        
+
         self.head.append("@attribute avgoutput numeric\n")
         self.head.append("@attribute maxoutput numeric\n")
         self.head.append("@attribute stdoutput numeric\n")
-        
+
         self.head.append("@attribute blackVariables numeric\n")
         self.head.append("@attribute blackRootVariables numeric\n")
-        
+
         self.head.append("@attribute redBlackVariables numeric\n")
         self.head.append("@attribute allpairsvaluesconnected numeric\n")
         self.head.append("@attribute allvaluesconnectedgoal numeric\n")
-        
+
         self.head.append("@attribute blackstronglpyarents numeric\n")
         self.head.append("@attribute Maximaleffectsblack numeric\n")
         self.head.append("@attribute Hred-black numeric\n")
         # self.head.append("@attribute planner {tamer, enhsp, fast-downward, lpg}\n")
         res = "@attribute planner {"
-        for i,p in enumerate(planner_list):
-            if(i == 0):
+        for i, p in enumerate(planner_list):
+            if i == 0:
                 res += str(p)
             else:
                 res += ", " + str(p)
         res += "}\n"
         self.head.append(res)
-            
-        self.head.append("@attribute class {True,False}\n\n")
- 
-        
-        self.head.append("@data\n\n")
 
+        self.head.append("@attribute class {True,False}\n\n")
+
+        self.head.append("@data\n\n")
