@@ -52,6 +52,6 @@ PortfolioSelector
 
 This library is being developed for the AIPlan4EU H2020 project (https://aiplan4eu-project.eu) that is funded by the European Commission under grant agreement number 101016442.
 
-It integrates the IBaCoP2 configurator, which developed by Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez. More information can be found at *The IBaCoP Planning System: Instance-Based Configured Portfolios.* PhD thesis, Universidad Carlos III de Madrid, 2016. 
+It integrates the IBaCoP2 configurator, which is developed by Isabel Cenamor and Tomas de la Rosa and Fernando Fernandez. More information can be found at *The IBaCoP Planning System: Instance-Based Configured Portfolios.* PhD thesis, Universidad Carlos III de Madrid, 2016. 
 
 
