@@ -21,7 +21,7 @@ NBalance=15
 ##initfeature-info.txt --> ff-learner
 ##tmp_results --> heuristics
 def readFile(name, datos):
-	print(name)
+	# print(name)
 	fd = open(name,'r')
 	linea = fd.readline()
 	while linea != "":
@@ -45,7 +45,8 @@ def writeFile(name, data, head, res_planner):
 	line = ""
 	for i in data:
 		line = line + i
-	print(line)
+	#use this print to see the features
+	# print(line)
 	for res in res_planner:
 		entry = line + "," + res + "\n"
 		fd.write(entry)

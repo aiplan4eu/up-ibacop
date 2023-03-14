@@ -138,8 +138,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
             # Need to change the working dir for the following commands to work properly
             os.chdir(tempdir)
 
-            print("\n***start extract features***\n")
-
             translate_path = os.path.join(
                 current_path, "utils", "features", "translate", "translate.py"
             )
@@ -151,14 +149,14 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " "
                 + problem_filename
             )
-            os.system(command)
+            os.popen(command).read()
 
             preprocess_path = os.path.join(
                 current_path, "utils", "features", "preprocess", "preprocess"
             )
             output_sas_path = os.path.join(tempdir, "output.sas")
             command = preprocess_path + " < " + output_sas_path
-            os.system(command)
+            os.popen(command).read()
 
             roller_path = os.path.join(
                 current_path, "utils", "features", "ff-learner", "roller3.0"
@@ -171,28 +169,29 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + problem_filename
                 + " -S 28"
             )
-            os.system(command)
+            os.popen(command).read()
 
             training_sh_path = os.path.join(
                 current_path, "utils", "features", "heuristics", "training.sh"
             )
-            command = training_sh_path + " " + domain_filename + " " + problem_filename
-            os.system(command)
+            command = training_sh_path + " " + domain_filename + " " + problem_filename + " 2> /dev/null"
+            os.popen(command).read()
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
             output_path = os.path.join(tempdir, "output")
             command = (
                 downward_path
                 + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
-                + output_path
+                + output_path 
+                + " 2> /dev/null"
             )
-            os.system(command)
+            os.popen(command).read()
 
             mercury_downward_path = os.path.join(
                 current_path, "utils", "search-mercury", "downward"
             )
             command = mercury_downward_path + " ipc seq-agl-mercury <" + output_path
-            os.system(command)
+            os.popen(command).read()
 
             # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
@@ -208,8 +207,6 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 temp_result.append(str(t) + ",?")
 
             joinFile.create_globals(tempdir, temp_result, tuple_list)
-
-            print("\n***end extract features***")
 
             # Return to the previous working dir
             os.chdir(current_wdir)
