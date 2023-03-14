@@ -25,18 +25,21 @@ problem.add_action(a)
 problem.set_initial_value(x, False)
 problem.add_goal(x)
 
-number_of_planners = 2
+max_planners = 2
 
-with PortfolioSelector(name='ibacop') as portfolioSelector:
-    planners, parameters = portfolioSelector.get_best_oneshot_planners(problem, number_of_planners)
+with PortfolioSelector(name="ibacop") as portfolioSelector:
+    planners, parameters = portfolioSelector.get_best_oneshot_planners(
+        problem, max_planners
+    )
 
-for single_planner, single_param in zip(planners, parameters):    
-  with OneshotPlanner(name=single_planner, params=single_param) as planner:
-      result = planner.solve(problem)
-      if result.status in unified_planning.engines.results.POSITIVE_OUTCOMES:
-          print(f"{planner.name} found this plan: {result.plan}")
-      else:
-          print("No plan found.")
+for single_planner, single_param in zip(planners, parameters):
+    with OneshotPlanner(name=single_planner, params=single_param) as planner:
+        result = planner.solve(problem)
+        if result.status in unified_planning.engines.results.POSITIVE_OUTCOMES:
+            print(f"{planner.name} found this plan: {result.plan}")
+        else:
+            print("No plan found.")
+
 ```
           
 ## Default Configuration
