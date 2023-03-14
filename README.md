@@ -5,7 +5,10 @@ The Instance-Based Configurator of Portfolio-2 (IBaCoP2) is a portfolio selector
 ## Installation
 Clone this repository and put the directory "up_ibacop" in your python library. 
 
-IBaCoP2 and therefore this integrator requires to be run on Linux OS (Version tested: Ubuntu 22.04.1 LTS). 
+IBaCoP2 and therefore this integrator requires:
++ To be run on Linux OS (Version tested: Ubuntu 22.04.1 LTS)
++ Python 3.x and also Python 2.7
+
 ## Usage
 ```python
 from unified_planning.shortcuts import *
