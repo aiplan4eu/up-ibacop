@@ -148,6 +148,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + domain_filename
                 + " "
                 + problem_filename
+                + " 2> /dev/null"
             )
             os.popen(command).read()
 
@@ -155,8 +156,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 current_path, "utils", "features", "preprocess", "preprocess"
             )
             output_sas_path = os.path.join(tempdir, "output.sas")
-            command = preprocess_path + " < " + output_sas_path
-            os.popen(command).read()
+            if os.path.isfile(output_sas_path):
+                command = preprocess_path + " < " + output_sas_path + " 2> /dev/null"
+                os.popen(command).read()
 
             roller_path = os.path.join(
                 current_path, "utils", "features", "ff-learner", "roller3.0"
@@ -168,6 +170,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " -f "
                 + problem_filename
                 + " -S 28"
+                + " 2> /dev/null"
             )
             os.popen(command).read()
 
@@ -186,19 +189,26 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
             output_path = os.path.join(tempdir, "output")
-            command = (
-                downward_path
-                + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
-                + output_path
-                + " 2> /dev/null"
-            )
-            os.popen(command).read()
+            if os.path.isfile(output_path):
+                command = (
+                    downward_path
+                    + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
+                    + output_path
+                    + " 2> /dev/null"
+                )
+                os.popen(command).read()
 
             mercury_downward_path = os.path.join(
                 current_path, "utils", "search-mercury", "downward"
             )
-            command = mercury_downward_path + " ipc seq-agl-mercury <" + output_path
-            os.popen(command).read()
+            if os.path.isfile(output_path):
+                command = (
+                    mercury_downward_path
+                    + " ipc seq-agl-mercury <"
+                    + output_path
+                    + " 2> /dev/null"
+                )
+                os.popen(command).read()
 
             # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []

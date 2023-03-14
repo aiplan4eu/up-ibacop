@@ -70,7 +70,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             translate[0] = segurityNumberFeature(translate[0], Ntranslate)
         union = union + translate[0]
     else:
-        print("There is not translate")
+        # print("There is not translate")
         entry_translate = "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
         union = union + entry_translate
     union = union + ","
@@ -80,7 +80,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             preprocess[0] = segurityNumberFeature(preprocess[0], Npreprocess)
         union = union + preprocess[0][: len(preprocess[0]) - 1]
     else:
-        print("There is not preprocess")
+        # print("There is not preprocess")
         entry_translate = "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
         union = union + entry_translate
     union = union + ","
@@ -90,7 +90,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             fflearner[0] = segurityNumberFeature(fflearner[0], NBalance)
         union = union + fflearner[0][: len(fflearner[0]) - 1]
     else:
-        print("There is not fflearner")
+        # print("There is not fflearner")
         entry_translate = "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
         union = union + entry_translate
     union = union + ","
@@ -100,7 +100,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             heuristics[0] = segurityNumberFeature(heuristics[0], Nheuristic)
         union = union + heuristics[0][: len(heuristics[0]) - 1]
     else:
-        print("There is not heuristics")
+        # print("There is not heuristics")
         entry_translate = "?,?,?,?,?,?,?,?,?"
         union = union + entry_translate
     union = union + ","
@@ -110,7 +110,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             landmarks[0] = segurityNumberFeature(landmarks[0], Nlandmarks)
         union = union + landmarks[0][: len(landmarks[0]) - 1]
     else:
-        print("There is not landmarks")
+        # print("There is not landmarks")
         entry_translate = "?,?,?,?,?,?,?,?,?,?,?,?"
         union = union + entry_translate
     union = union + ","
@@ -121,7 +121,7 @@ def join(translate, preprocess, fflearner, heuristics, landmarks, redblack, unio
             # print "estoy aqui"
         union = union + redblack[0][: len(redblack[0]) - 1]
     else:
-        print("There is not red-black")
+        # print("There is not red-black")
         entry_translate = "?,?,?,?,?,?,?,?"
         union = union + entry_translate
     ##union = union.replace("-nan", "?")
@@ -144,36 +144,36 @@ def create_globals(route, res_planner, plannerList):
     try:
         translate = readFile(route + "/translateFile", translate)  ## translateFile
     except:
-        print("No file in translate")
+        # print("No file in translate")
         translate = ["?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"]
     try:
         preprocess = readFile(route + "/features.arff", preprocess)  ## features.arff
     except:
-        print("No file in preprocess")
+        # print("No file in preprocess")
         preprocess = [
             "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?\n"
         ]
     try:
         fflearner = readFile(route + "/initfeature-info.txt", fflearner)
     except:
-        print("No file in fflearner")
+        # print("No file in fflearner")
         fflearner = ["?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?\n"]
     try:
         ##the route is wrong
         landmarks = readFile(route + "/landmark.arff", landmarks)
     except:
-        print("No file in landmarks")
+        # print("No file in landmarks")
         landmarks = ["?,?,?,?,?,?,?,?,?,?,?,?\n"]
     try:
         ##the route is wrong
         redblack = readFile(route + "/red-black", redblack)
     except:
-        print("No file in red-black")
+        # print("No file in red-black")
         redblack = ["?,?,?,?,?,?,?,?\n"]
     try:
         heuristics = readFile(route + "/tmp_results", heuristics)
     except:
-        print("No file in heuristics")
+        # print("No file in heuristics")
         heuristics = ["?,?,?,?,?,?,?,?,?\n"]
     try:
         union_final = join(
@@ -186,7 +186,7 @@ def create_globals(route, res_planner, plannerList):
             union_final,
         )
     except:
-        print("General error")
+        # print("General error")
         union_final = "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
     head = Head([], plannerList)
 
