@@ -11,6 +11,7 @@ from up_ibacop.utils.models import joinFile
 from up_ibacop.utils.models import parseWekaOutputFile
 import tempfile
 import ast
+import subprocess
 
 credits = Credits(
     "IBaCoP2",
@@ -150,15 +151,17 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + problem_filename
                 + " 2> /dev/null"
             )
-            os.popen(command).read()
-
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+            
             preprocess_path = os.path.join(
                 current_path, "utils", "features", "preprocess", "preprocess"
             )
             output_sas_path = os.path.join(tempdir, "output.sas")
-            if os.path.isfile(output_sas_path):
+            if(os.path.isfile(output_sas_path)):
                 command = preprocess_path + " < " + output_sas_path + " 2> /dev/null"
-                os.popen(command).read()
+                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p.communicate()
 
             roller_path = os.path.join(
                 current_path, "utils", "features", "ff-learner", "roller3.0"
@@ -172,7 +175,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " -S 28"
                 + " 2> /dev/null"
             )
-            os.popen(command).read()
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
 
             training_sh_path = os.path.join(
                 current_path, "utils", "features", "heuristics", "training.sh"
@@ -185,30 +189,28 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + problem_filename
                 + " 2> /dev/null"
             )
-            os.popen(command).read()
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
             output_path = os.path.join(tempdir, "output")
-            if os.path.isfile(output_path):
+            if(os.path.isfile(output_path)):
                 command = (
                     downward_path
                     + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
                     + output_path
                     + " 2> /dev/null"
                 )
-                os.popen(command).read()
+                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p.communicate()
 
             mercury_downward_path = os.path.join(
                 current_path, "utils", "search-mercury", "downward"
             )
-            if os.path.isfile(output_path):
-                command = (
-                    mercury_downward_path
-                    + " ipc seq-agl-mercury <"
-                    + output_path
-                    + " 2> /dev/null"
-                )
-                os.popen(command).read()
+            if(os.path.isfile(output_path)):
+                command = mercury_downward_path + " ipc seq-agl-mercury <" + output_path + " 2> /dev/null"
+                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p.communicate()
 
             # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
             tuple_list = []
@@ -256,7 +258,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + tempdir
                 + "/global_features_simply.arff"
             )
-            os.system(command)
+            # os.system(command)
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
 
             # Weka returns the predictions
             command = (
@@ -270,7 +274,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + tempdir
                 + "/outputModel"
             )
-            os.system(command)
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
 
             parseWekaOutputFile.parseOutputFile(
                 os.path.join(tempdir, "outputModel"),
