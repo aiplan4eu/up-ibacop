@@ -1,9 +1,9 @@
 import os
 import unified_planning as up
-from unified_planning.environment import Environment
+from unified_planning.shortcuts import get_env
 from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
-from unified_planning.engines import Engine, Credits, Factory
+from unified_planning.engines import Engine, Credits
 from unified_planning.io.pddl_writer import PDDLWriter
 from unified_planning.exceptions import UPUsageError
 from typing import Any, Dict, List, Optional, Tuple
@@ -46,6 +46,7 @@ def extract_tuple_from_list(
 
         planners.append(planner_name)
         parameters.append(planner_parameters_dict)
+
     return planners, parameters
 
 
@@ -59,9 +60,11 @@ def init_planners_data() -> Tuple[List[str], List[Dict[str, Any]]]:
                 line = line.replace("{", "")
                 line = line.replace("}", "")
                 line = line.replace(" ", "")
-                planners, parameters = extract_tuple_from_list(line.strip().split(","))
+                model_planners, model_parameters = extract_tuple_from_list(
+                    line.strip().split(",")
+                )
 
-        return planners, parameters
+        return model_planners, model_parameters
 
 
 default_planners, default_parameters = init_planners_data()
@@ -82,11 +85,13 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
+        factory = get_env().factory
+        installed_planners = factory.engines
+
         for planner in default_planners:
-            factory = Factory(Environment())
-            engine = factory.engine(planner)
-            if engine.supports(problem_kind):
-                return True
+            if planner in installed_planners:
+                if factory.engine(planner).supports(problem_kind):
+                    return True
         return False
 
     @staticmethod
@@ -97,11 +102,13 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def satisfies(
         optimality_guarantee: "up.engines.mixins.oneshot_planner.OptimalityGuarantee",
     ) -> bool:
+        factory = get_env().factory
+        installed_planners = factory.engines
+
         for planner in default_planners:
-            factory = Factory(Environment())
-            engine = factory.engine(planner)
-            if not engine.satisfies(optimality_guarantee):
-                return False
+            if planner in installed_planners:
+                if not factory.engine(planner).satisfies(optimality_guarantee):
+                    return False
         return True
 
     def _get_best_oneshot_planners(
@@ -112,6 +119,8 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
         features = self._extract_features(problem)
         model_prediction_list = self._get_prediction(features)
+
+        model_prediction_list = self._filter_with_system_planners(model_prediction_list)
 
         n_selected_planners = 0
         list_planners = []
@@ -151,16 +160,20 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + problem_filename
                 + " 2> /dev/null"
             )
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             p.communicate()
-            
+
             preprocess_path = os.path.join(
                 current_path, "utils", "features", "preprocess", "preprocess"
             )
             output_sas_path = os.path.join(tempdir, "output.sas")
-            if(os.path.isfile(output_sas_path)):
+            if os.path.isfile(output_sas_path):
                 command = preprocess_path + " < " + output_sas_path + " 2> /dev/null"
-                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(
+                    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
                 p.communicate()
 
             roller_path = os.path.join(
@@ -175,7 +188,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + " -S 28"
                 + " 2> /dev/null"
             )
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             p.communicate()
 
             training_sh_path = os.path.join(
@@ -189,27 +204,38 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + problem_filename
                 + " 2> /dev/null"
             )
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             p.communicate()
 
             downward_path = os.path.join(current_path, "utils", "search", "downward")
             output_path = os.path.join(tempdir, "output")
-            if(os.path.isfile(output_path)):
+            if os.path.isfile(output_path):
                 command = (
                     downward_path
                     + ' --landmarks "lm=lm_merged([lm_hm(m=1),lm_rhw(),lm_zg()])" < '
                     + output_path
                     + " 2> /dev/null"
                 )
-                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(
+                    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
                 p.communicate()
 
             mercury_downward_path = os.path.join(
                 current_path, "utils", "search-mercury", "downward"
             )
-            if(os.path.isfile(output_path)):
-                command = mercury_downward_path + " ipc seq-agl-mercury <" + output_path + " 2> /dev/null"
-                p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if os.path.isfile(output_path):
+                command = (
+                    mercury_downward_path
+                    + " ipc seq-agl-mercury <"
+                    + output_path
+                    + " 2> /dev/null"
+                )
+                p = subprocess.Popen(
+                    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
                 p.communicate()
 
             # Formatting the list of names and the list of parameters into a list of tuples to be used by weka
@@ -259,7 +285,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + "/global_features_simply.arff"
             )
             # os.system(command)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             p.communicate()
 
             # Weka returns the predictions
@@ -274,7 +302,9 @@ class Ibacop(PortfolioSelectorMixin, Engine):
                 + tempdir
                 + "/outputModel"
             )
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             p.communicate()
 
             parseWekaOutputFile.parseOutputFile(
@@ -287,3 +317,17 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
             with open(os.path.join(tempdir, "listPlanner"), "r") as file:
                 return file.readlines()
+
+    def _filter_with_system_planners(
+        self, planner_list: List[str]
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        installed_planners = get_env().factory.engines
+
+        planners = []
+        for planner in planner_list:
+            planner = planner.strip()
+            delimiter = planner.find("|")
+            if planner[0:delimiter] in installed_planners:
+                planners.append(planner)
+
+        return planners
