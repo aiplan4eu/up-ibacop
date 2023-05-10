@@ -1,3 +1,5 @@
+from setuptools import setup
+
 setup(name='up_ibacop',
       version='0.0.1',
       description='up_ibacop',
