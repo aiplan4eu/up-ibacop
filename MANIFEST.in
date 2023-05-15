@@ -1,0 +1,4 @@
+include up_ibacop/model/RotationForest.model
+include up_ibacop/model/global_features_simply.arff
+
+recursive-include up_ibacop/utils *
