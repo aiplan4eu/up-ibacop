@@ -1,0 +1,30 @@
+name: Build and Upload Package
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+          
+      - name: Install dependencies
+        run: |
+          pip install --upgrade setuptools wheel twine
+      - name: Build package
+        run: python setup.py bdist_wheel --plat-name manylinux2014_x86_64
+
+      - name: Publish to PyPI
+        run: |
+          pip install twine
+          twine upload dist/*.whl
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
