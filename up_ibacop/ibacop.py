@@ -1,6 +1,6 @@
 import os
 import unified_planning as up
-from unified_planning.shortcuts import get_env
+from unified_planning.shortcuts import get_environment
 from unified_planning.model import ProblemKind
 from unified_planning.engines.mixins import PortfolioSelectorMixin
 from unified_planning.engines import Engine, Credits
@@ -85,7 +85,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
 
     @staticmethod
     def supports(problem_kind: "ProblemKind") -> bool:
-        factory = get_env().factory
+        factory = get_environment().factory
         installed_planners = factory.engines
 
         for planner in default_planners:
@@ -102,7 +102,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def satisfies(
         optimality_guarantee: "up.engines.mixins.oneshot_planner.OptimalityGuarantee",
     ) -> bool:
-        factory = get_env().factory
+        factory = get_environment().factory
         installed_planners = factory.engines
 
         for planner in default_planners:
@@ -321,7 +321,7 @@ class Ibacop(PortfolioSelectorMixin, Engine):
     def _filter_with_system_planners(
         self, planner_list: List[str]
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        installed_planners = get_env().factory.engines
+        installed_planners = get_environment().factory.engines
 
         planners = []
         for planner in planner_list:
